@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.iu.edu/evogelsa/go-ml-rpg/game"
-	"github.iu.edu/evogelsa/go-ml-rpg/ui"
 
 	"github.com/gorilla/mux"
 )
@@ -24,7 +23,6 @@ func newRouter() *mux.Router {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", home)
-	r.HandleFunc("/uitest", ui.Load)
 
 	return r
 }

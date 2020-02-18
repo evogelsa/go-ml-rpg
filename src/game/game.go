@@ -1,10 +1,3 @@
-// TODO
-// make attacks event based (no absolute damage)
-// will require making function for turn / round processing
-// add the other Classes and attacks
-// make cli based ui for testing
-// port to web
-
 package game
 
 import (

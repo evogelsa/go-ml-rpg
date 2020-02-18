@@ -143,6 +143,8 @@ func (c *Class) evadeDefense(e *Class) int {
 	}
 }
 
+// PrintCharacter prints out a character information box with name
+// and character stats
 func PrintCharacter(p Class) {
 	fmt.Printf("********************\n* %-16s *\n********************\n",
 		p.PlayerName)
@@ -154,6 +156,8 @@ func PrintCharacter(p Class) {
 	fmt.Printf("********************\n")
 }
 
+// parseMove takes in two players and parses a move m for the first
+// player p1
 func parseMove(p1, p2 *Class, m Move) (bool, int) {
 	var def bool
 	var r int
@@ -215,12 +219,16 @@ func printTurn(p1, p2 *Class, m1, m2 Move, s1, s2 bool) {
 		p2.PlayerName, moveNames[m2], p1.PlayerName, result[s2])
 }
 
-func printStats(p *Class) {
+// printStatus takes in a player and prints out the player name
+// and their current health and armor
+func printStatus(p *Class) {
 	fmt.Printf("%s\n", p.PlayerName)
 	fmt.Printf("\tHealth: %d\n", p.Health)
 	fmt.Printf("\tArmor: %d\n", p.Armor)
 }
 
+// Turn takes in two players and two moves and and handles the events
+// which occur from player p1 executing move m1 and p2 executing m2
 func Turn(p1, p2 *Class, m1, m2 Move) {
 	def1, a1 := parseMove(p1, p2, m1)
 	def2, a2 := parseMove(p2, p1, m2)
@@ -341,6 +349,6 @@ func Turn(p1, p2 *Class, m1, m2 Move) {
 		printTurn(p1, p2, m1, m2, false, false)
 		fmt.Printf("Nothing happens!\n")
 	}
-	printStats(p1)
-	printStats(p2)
+	printStatus(p1)
+	printStatus(p2)
 }

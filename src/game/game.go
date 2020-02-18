@@ -1,8 +1,11 @@
 package game
 
 import (
+	"bufio"
 	"fmt"
 	"math/rand"
+	"os"
+	"strconv"
 )
 
 type Move int
@@ -218,6 +221,31 @@ func printStatus(p *Class) {
 	fmt.Printf("%s\n", p.PlayerName)
 	fmt.Printf("\tHealth: %d\n", p.Health)
 	fmt.Printf("\tArmor: %d\n", p.Armor)
+}
+
+// getIntInput gets an error checked integer input from os.stdin
+func getIntInput() int {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			panic(err)
+		}
+		choice, err := strconv.Atoi(input[:len(input)-1])
+		if err == nil && choice >= 0 && choice <= 5 {
+			return choice
+		} else {
+			fmt.Printf("Please input a valid integer selection\n")
+		}
+	}
+}
+
+// SelectMove prints move selection to stdout and calls getIntInput
+func SelectMove(p Class) Move {
+	fmt.Printf("%s select move:\n", p.PlayerName)
+	fmt.Printf("\t(0)Heavy attack\n\t(1)Quick attack\n\t(2)Standard attack\n")
+	fmt.Printf("\t(3)Block\n\t(4)Parry\n\t(5)Evade\n")
+	return Move(getIntInput())
 }
 
 // Turn takes in two players and two moves and and handles the events

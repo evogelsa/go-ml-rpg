@@ -1,0 +1,30 @@
+<table>
+    <tr>
+        <th>Renan</th>
+        <th>Archer</th>
+    </tr>
+    <tr>
+        <td>Health</td>
+        <td>90</td>
+    </tr>
+    <tr>
+        <td>Stamina</td>
+        <td>70</td>
+    </tr>
+    <tr>
+        <td>Armor</td>
+        <td>9</td>
+    </tr>
+    <tr>
+        <td>Strength</td>
+        <td>0.400000</td>
+    </tr>
+    <tr>
+        <td>Dexterity</td>
+        <td>0.850000</td>
+    </tr>
+    <tr>
+        <td>Intellect</td>
+        <td>0.750000</td>
+    </tr>
+</table>

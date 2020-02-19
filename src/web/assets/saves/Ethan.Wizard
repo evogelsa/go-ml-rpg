@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 20%;
+    }
+    td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+    tr:nth-child(even) {
+        background-color: #dddddd;
+    }
+</style>
+</head>
+<body>
+    <table style="width:20%">
+        <tr>
+            <th>Ethan</th>
+            <th>Wizard</th>
+        </tr>
+        <tr>
+            <td>Health</td>
+            <td>91</td>
+        </tr>
+        <tr>
+            <td>Stamina</td>
+            <td>62</td>
+        </tr>
+        <tr>
+            <td>Armor</td>
+            <td>13</td>
+        </tr>
+        <tr>
+            <td>Strength</td>
+            <td>0.700000</td>
+        </tr>
+        <tr>
+            <td>Dexterity</td>
+            <td>0.300000</td>
+        </tr>
+        <tr>
+            <td>Intellect</td>
+            <td>0.800000</td>
+        </tr>
+    </table>
+</body>

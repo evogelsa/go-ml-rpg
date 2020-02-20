@@ -196,7 +196,8 @@ func handleDamage(p *Class, d int) {
 }
 
 // printTurn prints out text regarding outcome of turn
-func printTurn(p1, p2 *Class, m1, m2 Move, s1, s2 bool) {
+func printTurn(p1, p2 *Class, m1, m2 Move, s1, s2 bool) string {
+	var res string
 	var moveNames = map[Move]string{
 		HEAVY:    "heavy attack",
 		QUICK:    "quick attack",
@@ -210,18 +211,22 @@ func printTurn(p1, p2 *Class, m1, m2 Move, s1, s2 bool) {
 		true:  "succeeds",
 	}
 
-	fmt.Printf("%s attempts to %s %s and %s\n",
+	res += fmt.Sprintf("%s attempts to %s %s and %s\n",
 		p1.PlayerName, moveNames[m1], p2.PlayerName, result[s1])
-	fmt.Printf("%s attempts to %s %s and %s\n",
+	res += fmt.Sprintf("%s attempts to %s %s and %s\n",
 		p2.PlayerName, moveNames[m2], p1.PlayerName, result[s2])
+
+	return res
 }
 
 // printStatus takes in a player and prints out the player name
 // and their current health and armor
-func printStatus(p *Class) {
-	fmt.Printf("%s\n", p.PlayerName)
-	fmt.Printf("\tHealth: %d\n", p.Health)
-	fmt.Printf("\tArmor: %d\n", p.Armor)
+func printStatus(p *Class) string {
+	var res string
+	res += fmt.Sprintf("%s\n", p.PlayerName)
+	res += fmt.Sprintf("\tHealth: %d\n", p.Health)
+	res += fmt.Sprintf("\tArmor: %d\n", p.Armor)
+	return res
 }
 
 // getIntInput gets an error checked integer input from os.stdin
@@ -251,7 +256,9 @@ func SelectMove(w io.Writer, p Class) Move {
 
 // Turn takes in two players and two moves and and handles the events
 // which occur from player p1 executing move m1 and p2 executing m2
-func Turn(p1, p2 *Class, m1, m2 Move) {
+func Turn(p1, p2 *Class, m1 Move) string {
+	var res string
+	m2 := Move(rand.Intn(6))
 	def1, a1 := parseMove(p1, p2, m1)
 	def2, a2 := parseMove(p2, p1, m2)
 	if !def1 && !def2 {
@@ -267,10 +274,10 @@ func Turn(p1, p2 *Class, m1, m2 Move) {
 		}
 		printTurn(p1, p2, m1, m2, s1, s2)
 		if s1 {
-			fmt.Printf("%s deals %d damage\n", p1.PlayerName, a1)
+			res += fmt.Sprintf("%s deals %d damage\n", p1.PlayerName, a1)
 		}
 		if s2 {
-			fmt.Printf("%s deals %d damage\n", p2.PlayerName, a2)
+			res += fmt.Sprintf("%s deals %d damage\n", p2.PlayerName, a2)
 		}
 	} else if !def1 && def2 {
 		// if player2 defends then use attack of player1 to
@@ -281,42 +288,43 @@ func Turn(p1, p2 *Class, m1, m2 Move) {
 			// takes damage of p1
 			if a2 > 0 {
 				p2.Armor += a2
-				printTurn(p1, p2, m1, m2, false, true)
-				fmt.Printf("%s repairs armor for %d points\n", p2.PlayerName, a2)
+				res += printTurn(p1, p2, m1, m2, false, true)
+				res += fmt.Sprintf("%s repairs armor for %d points\n",
+					p2.PlayerName, a2)
 			} else if a1 > 0 {
 				handleDamage(p2, a1)
-				printTurn(p1, p2, m1, m2, true, false)
-				fmt.Printf("%s deals %d damage\n", p1.PlayerName, a1)
+				res += printTurn(p1, p2, m1, m2, true, false)
+				res += fmt.Sprintf("%s deals %d damage\n", p1.PlayerName, a1)
 			} else {
-				printTurn(p1, p2, m1, m2, false, false)
+				res += printTurn(p1, p2, m1, m2, false, false)
 			}
 		case PARRY:
 			// if p2 success, p1 takes damage of p1 attack +
 			// damage of p2 counter, vise versa if fail
 			if a2 > 0 {
 				handleDamage(p1, a1+a2)
-				printTurn(p1, p2, m1, m2, false, true)
-				fmt.Printf("%s deals %d damage\n", p2.PlayerName, a1+a2)
+				res += printTurn(p1, p2, m1, m2, false, true)
+				res += fmt.Sprintf("%s deals %d damage\n", p2.PlayerName, a1+a2)
 			} else if a1-a2 > 0 {
 				handleDamage(p2, a1-a2)
-				printTurn(p1, p2, m1, m2, true, false)
-				fmt.Printf("%s deals %d damage\n", p1.PlayerName, a1-a2)
+				res += printTurn(p1, p2, m1, m2, true, false)
+				res += fmt.Sprintf("%s deals %d damage\n", p1.PlayerName, a1-a2)
 			} else {
-				printTurn(p1, p2, m1, m2, false, false)
+				res += printTurn(p1, p2, m1, m2, false, false)
 			}
 		case EVADE:
 			// if p2 success p2 heals a little, on fail p2
 			// takes damage of p1 attack
 			if a2 > 0 {
 				p2.Health += a2
-				printTurn(p1, p2, m1, m2, false, true)
-				fmt.Printf("%s heals %d damage\n", p2.PlayerName, a2)
+				res += printTurn(p1, p2, m1, m2, false, true)
+				res += fmt.Sprintf("%s heals %d damage\n", p2.PlayerName, a2)
 			} else if a1 > 0 {
 				handleDamage(p2, a1)
-				printTurn(p1, p2, m1, m2, true, false)
-				fmt.Printf("%s deals %d damage\n", p1.PlayerName, a1)
+				res += printTurn(p1, p2, m1, m2, true, false)
+				res += fmt.Sprintf("%s deals %d damage\n", p1.PlayerName, a1)
 			} else {
-				printTurn(p1, p2, m1, m2, false, false)
+				res += printTurn(p1, p2, m1, m2, false, false)
 			}
 		}
 	} else if def1 && !def2 {
@@ -328,49 +336,55 @@ func Turn(p1, p2 *Class, m1, m2 Move) {
 			// takes damage of p2
 			if a1 > 0 {
 				p1.Armor += a1
-				printTurn(p1, p2, m1, m2, true, false)
-				fmt.Printf("%s repairs armor for %d points\n", p1.PlayerName, a1)
+				res += printTurn(p1, p2, m1, m2, true, false)
+				res += fmt.Sprintf("%s repairs armor for %d points\n",
+					p1.PlayerName, a1)
 			} else if a2 > 0 {
 				handleDamage(p1, a2)
-				printTurn(p1, p2, m1, m2, false, true)
-				fmt.Printf("%s deals %d damage\n", p2.PlayerName, a2)
+				res += printTurn(p1, p2, m1, m2, false, true)
+				res += fmt.Sprintf("%s deals %d damage\n", p2.PlayerName, a2)
 			} else {
-				printTurn(p1, p2, m1, m2, false, false)
+				res += printTurn(p1, p2, m1, m2, false, false)
 			}
 		case PARRY:
 			// if p1 success, p2 takes damage of p2 attack +
 			// damage of p1 counter, vise versa if fail
 			if a1 > 0 {
 				handleDamage(p2, a2+a1)
-				printTurn(p1, p2, m1, m2, true, false)
-				fmt.Printf("%s deals %d damage\n", p1.PlayerName, a2+a1)
+				res += printTurn(p1, p2, m1, m2, true, false)
+				res += fmt.Sprintf("%s deals %d damage\n", p1.PlayerName, a2+a1)
 			} else if a2-a1 > 0 {
 				handleDamage(p1, a2-a1)
-				printTurn(p1, p2, m1, m2, false, true)
-				fmt.Printf("%s deals %d damage\n", p2.PlayerName, a2-a1)
+				res += printTurn(p1, p2, m1, m2, false, true)
+				res += fmt.Sprintf("%s deals %d damage\n", p2.PlayerName, a2-a1)
 			} else {
-				printTurn(p1, p2, m1, m2, false, false)
+				res += printTurn(p1, p2, m1, m2, false, false)
 			}
 		case EVADE:
 			// if p1 success p1 heals a little, on fail p1
 			// takes damage of p2 attack
 			if a1 > 0 {
 				p1.Health += a1
-				printTurn(p1, p2, m1, m2, true, false)
-				fmt.Printf("%s heals %d damage\n", p1.PlayerName, a1)
+				res += printTurn(p1, p2, m1, m2, true, false)
+				res += fmt.Sprintf("%s heals %d damage\n", p1.PlayerName, a1)
 			} else if a2 > 0 {
 				handleDamage(p1, a2)
-				printTurn(p1, p2, m1, m2, false, true)
-				fmt.Printf("%s deals %d damage\n", p2.PlayerName, a2)
+				res += printTurn(p1, p2, m1, m2, false, true)
+				res += fmt.Sprintf("%s deals %d damage\n", p2.PlayerName, a2)
 			} else {
-				printTurn(p1, p2, m1, m2, false, false)
+				res += printTurn(p1, p2, m1, m2, false, false)
 			}
 		}
 	} else if def1 && def2 {
 		// nothing happens both players tried to defend
-		printTurn(p1, p2, m1, m2, false, false)
-		fmt.Printf("Nothing happens!\n")
+		res += printTurn(p1, p2, m1, m2, false, false)
+		res += fmt.Sprintf("Nothing happens!\n")
 	}
-	printStatus(p1)
-	printStatus(p2)
+	// res += printStatus(p1)
+	// res += printStatus(p2)
+	if res == "" {
+		res += "Both attacks miss!\n"
+	}
+	res += "----------------------------------------\n"
+	return res
 }

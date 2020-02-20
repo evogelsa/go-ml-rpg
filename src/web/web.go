@@ -36,6 +36,45 @@ func fileToString(fn string) (string, error) {
 	return text, nil
 }
 
+func logFile(fn, logStr string) error {
+	fn = FILE_DIR + fn
+
+	var text string
+
+	_, err := os.Stat(fn)
+	if err == nil {
+		body, _ := ioutil.ReadFile(fn)
+		text = string(body)
+	}
+
+	f, err := os.Create(fn)
+	if err != nil {
+		return err
+	}
+
+	text = logStr + text
+
+	fmt.Fprint(f, text)
+
+	return nil
+}
+
+// divWrap takes a string in and replaces newlines with html divs
+func divWrap(s string) string {
+	lines := strings.SplitN(s, "\n", -1)
+	for i, line := range lines {
+		lines[i] = "<div>" + line + "</div>"
+	}
+	lines = lines[:len(lines)-1]
+
+	var res string
+	for _, line := range lines {
+		res += line
+	}
+
+	return res
+}
+
 // getMoves takes in character and returns string containing
 // html table formatted moveset
 func getMoves(char game.Class) string {
@@ -48,21 +87,21 @@ func getMoves(char game.Class) string {
 	switch char.ClassName {
 	case "Knight":
 		moves = []interface{}{
-			"Crushing blow",
-			"Quick thrust",
-			"Sword slash",
-			"Shield block",
+			"Crushing Blow",
+			"Quick Thrust",
+			"Sword Slash",
+			"Shield",
 			"Counter",
-			"Side step",
+			"Drink Potion",
 		}
 	case "Archer":
 		moves = []interface{}{
-			"Piercing shot",
-			"Quick fire",
-			"Long shot",
-			"Dagger block",
-			"Shank",
-			"Roll",
+			"Piercing Shot",
+			"Quick Fire",
+			"Long Shot",
+			"Block",
+			"Dagger",
+			"Apply Bandaid",
 		}
 	case "Wizard":
 		moves = []interface{}{
@@ -71,7 +110,7 @@ func getMoves(char game.Class) string {
 			"Fireball",
 			"Magic Shield",
 			"Counterspell",
-			"Dash",
+			"Heal",
 		}
 	}
 
@@ -245,11 +284,22 @@ func parseMoveForm(w http.ResponseWriter, r *http.Request) {
 		move = game.BLOCK
 	case "Parry":
 		move = game.PARRY
-	case "Dodge":
+	case "Evade":
 		move = game.EVADE
 	}
 
-	game.Turn(&c1, &c2, move, move)
+	// process turn and get result
+	outStr := game.Turn(&c1, &c2, move)
+	// divwrap result
+	res := divWrap(outStr)
+	// get log file name
+	logName := fmt.Sprintf("%s%s%s%s.log",
+		c1.PlayerName, c1.ClassName, c2.PlayerName, c2.ClassName)
+	// add result to log file
+	err = logFile(logName, res)
+	if err != nil {
+		panic(err)
+	}
 
 	err = writeCharToFile(c1)
 	if err != nil {
@@ -381,9 +431,27 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	// get log file name
+	logName := fmt.Sprintf("%s%s%s%s.log",
+		c1.PlayerName, c1.ClassName, c2.PlayerName, c2.ClassName)
+	gameLog, err := fileToString(logName)
+	if err != nil {
+		gameLog = ""
+	}
+
+	screen += gameLog
+
 	c1Moves := getMoves(c1)
 
-	fmt.Fprintf(w, screen, c1HTML, c2HTML, c1Moves, "")
+	info := "Heavy attacks effective against low int (str damage)\n" +
+		"Quick attacks effective against low str (dex damage)\n" +
+		"Standard attacks effective against low dex (int damage)\n" +
+		"Blocks effective with high str, heals armor\n" +
+		"Parry effective with high dex, counters but can backfire\n" +
+		"Evade effective with high int, heals HP\n"
+	info = divWrap(info)
+
+	fmt.Fprintf(w, screen, c1HTML, c2HTML, c1Moves, info)
 }
 
 func home(w http.ResponseWriter, r *http.Request) {

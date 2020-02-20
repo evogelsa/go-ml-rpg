@@ -3,6 +3,7 @@
 
 # save files
 src/saves/*
+src/web/assets/*.log
 
 # binaries
 bin/*

@@ -1,5 +1,8 @@
 # swap files
 .swp
 
+# save files
+saves/*
+
 # binaries
 bin/*

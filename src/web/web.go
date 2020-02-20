@@ -356,25 +356,43 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 		chars = append(chars, strings.SplitN(charFile.Name(), ".", -1))
 	}
 
+	var players [][]string
+	var enemies [][]string
+	for _, char := range chars {
+		if strings.Contains(char[0], "_enemy") {
+			enemies = append(enemies, char)
+		} else {
+			players = append(players, char)
+		}
+	}
+
 	s, err := fileToString("charSelectScreen.html")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Fprint(w, s)
 
-	for i, char := range chars {
-		name := char[0]
-		class := char[1]
+	nameStr, err := fileToString("names.txt")
+	if err != nil {
+		panic(err)
+	}
+	names := strings.SplitN(nameStr, ",", -1)
+
+	for i, player := range players {
+		name := player[0]
+		class := player[1]
 
 		var opponent string
-		if len(charFiles) > 1 {
-			opponent = charFiles[rand.Intn(len(charFiles))].Name()
+		if len(enemies) > 1 {
+			r := rand.Intn(len(enemies))
+			opponent = enemies[r][0] + "." + enemies[r][1]
 			for opponent == charFiles[i].Name() {
-				opponent = charFiles[rand.Intn(len(charFiles))].Name()
+				r := rand.Intn(len(enemies))
+				opponent = enemies[r][0] + "." + enemies[r][1]
 			}
 		} else {
 			opClass := []string{"Knight", "Archer", "Wizard"}[rand.Intn(3)]
-			opName := fmt.Sprintf("Enemy%d", i)
+			opName := fmt.Sprintf("%s_enemy", names[rand.Intn(len(names))])
 			err := generateChar(opClass, opName)
 			if err != nil {
 				panic(err)
@@ -396,7 +414,7 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 			</tr>
 			`,
 			name, class,
-			charFiles[i].Name(), opponent,
+			player[0]+"."+player[1], opponent,
 		)
 	}
 	fmt.Fprint(w, `</table></body>`)
@@ -439,16 +457,16 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 		gameLog = ""
 	}
 
-	screen += gameLog
+	screen += "<br>" + gameLog
 
 	c1Moves := getMoves(c1)
 
-	info := "Heavy attacks effective against low int (str damage)\n" +
-		"Quick attacks effective against low str (dex damage)\n" +
-		"Standard attacks effective against low dex (int damage)\n" +
-		"Blocks effective with high str, heals armor\n" +
-		"Parry effective with high dex, counters but can backfire\n" +
-		"Evade effective with high int, heals HP\n"
+	info := "Heavy attacks effective against low int (str damage)\n<br>" +
+		"Quick attacks effective against low str (dex damage)\n<br>" +
+		"Standard attacks effective against low dex (int damage)\n<br>" +
+		"Blocks effective with high str, heals armor\n<br>" +
+		"Parry effective with high dex, counters but can backfire\n<br>" +
+		"Evade effective with high int, heals HP\n<br>"
 	info = divWrap(info)
 
 	fmt.Fprintf(w, screen, c1HTML, c2HTML, c1Moves, info)

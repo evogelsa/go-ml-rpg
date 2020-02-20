@@ -42,6 +42,6 @@ function redirect(move) {
     var char1 = window.location.pathname.split("/")[2] + "/";
     var char2 = window.location.pathname.split("/")[3] + "/";
     var ref = hostname + "turn/" + char1 + char2 + "/" + move;
-    window.location.href = ref
+    window.location.replace(ref)
 }
 </script>

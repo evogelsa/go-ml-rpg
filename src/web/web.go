@@ -383,13 +383,8 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 		class := player[1]
 
 		var opponent string
-		if len(enemies) > 1 {
-			r := rand.Intn(len(enemies))
-			opponent = enemies[r][0] + "." + enemies[r][1]
-			for opponent == charFiles[i].Name() {
-				r := rand.Intn(len(enemies))
-				opponent = enemies[r][0] + "." + enemies[r][1]
-			}
+		if len(enemies) >= len(players) {
+			opponent = enemies[i][0] + "." + enemies[i][1]
 		} else {
 			opClass := []string{"Knight", "Archer", "Wizard"}[rand.Intn(3)]
 			opName := fmt.Sprintf("%s_enemy", names[rand.Intn(len(names))])
@@ -473,12 +468,7 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
-	homeScreen, err := fileToString("homeScreen.html")
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Fprint(w, homeScreen)
+	http.Redirect(w, r, "/selectChar", http.StatusFound)
 }
 
 // newRouter returns a router and endpoints

@@ -221,12 +221,12 @@ func printTurn(p1, p2 *Class, m1, m2 Move, s1, s2 bool) string {
 
 // printStatus takes in a player and prints out the player name
 // and their current health and armor
-func printStatus(p *Class) string {
-	var res string
-	res += fmt.Sprintf("%s\n", p.PlayerName)
-	res += fmt.Sprintf("\tHealth: %d\n", p.Health)
-	res += fmt.Sprintf("\tArmor: %d\n", p.Armor)
-	return res
+func checkStatus(p *Class) string {
+	if p.Health <= 0 {
+		p.Health = 0
+		return fmt.Sprintf("<h3>Game over, %s died</h3>", p.PlayerName)
+	}
+	return ""
 }
 
 // getIntInput gets an error checked integer input from os.stdin
@@ -380,8 +380,8 @@ func Turn(p1, p2 *Class, m1 Move) string {
 		res += printTurn(p1, p2, m1, m2, false, false)
 		res += fmt.Sprintf("Nothing happens!\n")
 	}
-	// res += printStatus(p1)
-	// res += printStatus(p2)
+	res = checkStatus(p1) + res
+	res = checkStatus(p2) + res
 	if res == "" {
 		res += "Both attacks miss!\n"
 	}

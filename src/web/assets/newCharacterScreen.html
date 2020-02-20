@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<script>
+function redirect(page) {
+    var hostname = "http://" + window.location.hostname + ":8080/";
+    var ref = hostname + page;
+    window.location.href = ref
+}
+</script>
+<body>
+    <div><h2>Enter a name and select a class</h2></div>
+    <form action="/newChar" method="post">
+        <label for="name">Name</label><br>
+        <input type="text" id="name" name="name"><br><br>
+        <input type="submit" name="class" value="Knight">
+        <input type="submit" name="class" value="Archer">
+        <input type="submit" name="class" value="Wizard">
+    </form>
+    <br><button onclick="redirect('/selectChar')">Select Character</button>
+</body>
+

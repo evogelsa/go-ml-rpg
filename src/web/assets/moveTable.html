@@ -1,0 +1,47 @@
+<table>
+    <tr>
+        <td>%s</td>
+        <td>
+            <button onclick="redirect('Heavy')">Heavy Attack</button>
+        </td>
+    </tr>
+    <tr>
+        <td>%s</td>
+        <td>
+            <button onclick="redirect('Quick')">Quick Attack</button>
+        </td>
+    </tr>
+    <tr>
+        <td>%s</td>
+        <td>
+            <button onclick="redirect('Standard')">Standard Attack</button>
+        </td>
+    </tr>
+    <tr>
+        <td>%s</td>
+        <td>
+            <button onclick="redirect('Block')">Block</button>
+        </td>
+    </tr>
+    <tr>
+        <td>%s</td>
+        <td>
+            <button onclick="redirect('Parry')">Parry</button>
+        </td>
+    </tr>
+    <tr>
+        <td>%s</td>
+        <td>
+            <button onclick="redirect('Evade')">Evade</button>
+        </td>
+    </tr>
+</table>
+<script>
+function redirect(move) {
+    var hostname = "http://" + window.location.hostname + ":8080/";
+    var char1 = window.location.pathname.split("/")[2] + "/";
+    var char2 = window.location.pathname.split("/")[3] + "/";
+    var ref = hostname + "turn/" + char1 + char2 + "/" + move;
+    window.location.href = ref
+}
+</script>

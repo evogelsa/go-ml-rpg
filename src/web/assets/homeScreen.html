@@ -1,0 +1,12 @@
+<body>
+    <button onclick="redirect('/newChar')">New Character</button>
+    <button onclick="redirect('/selectChar')">Select Character</button>
+</body>
+
+<script>
+function redirect(page) {
+    var hostname = "http://" + window.location.hostname + ":8080/";
+    var ref = hostname + page;
+    window.location.href = ref
+}
+</script>

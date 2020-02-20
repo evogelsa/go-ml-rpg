@@ -1,11 +1,16 @@
 package web
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.iu.edu/evogelsa/go-ml-rpg/game"
 
@@ -14,33 +19,11 @@ import (
 
 const (
 	FILE_DIR = "./web/assets/"
-	SAVE_DIR = "./web/assets/saves/"
+	SAVE_DIR = "./saves/"
 	PORT     = ":8080"
 )
 
-func generateChar(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	class := vars["class"]
-	name := vars["name"]
-
-	var char game.Class
-	switch class {
-	case "knight":
-		char = game.NewKnight(name)
-	case "archer":
-		char = game.NewArcher(name)
-	case "wizard":
-		char = game.NewWizard(name)
-	default:
-		panic("err creating char")
-	}
-
-	err := writeCharToFile(char)
-	if err != nil {
-		panic(err)
-	}
-}
-
+// fileToString takes in file name and convert to string
 func fileToString(fn string) (string, error) {
 	fn = FILE_DIR + fn
 
@@ -53,18 +36,118 @@ func fileToString(fn string) (string, error) {
 	return text, nil
 }
 
-func readCharFromFile(fn string) (string, error) {
-	fn = SAVE_DIR + fn
-
-	body, err := ioutil.ReadFile(fn)
+// getMoves takes in character and returns string containing
+// html table formatted moveset
+func getMoves(char game.Class) string {
+	s, err := fileToString("moveTable.html")
 	if err != nil {
-		return "", err
+		panic(err)
 	}
 
-	text := string(body)
-	return text, nil
+	var moves []interface{}
+	switch char.ClassName {
+	case "Knight":
+		moves = []interface{}{
+			"Crushing blow",
+			"Quick thrust",
+			"Sword slash",
+			"Shield block",
+			"Counter",
+			"Side step",
+		}
+	case "Archer":
+		moves = []interface{}{
+			"Piercing shot",
+			"Quick fire",
+			"Long shot",
+			"Dagger block",
+			"Shank",
+			"Roll",
+		}
+	case "Wizard":
+		moves = []interface{}{
+			"Lightning",
+			"Arcane Bolt",
+			"Fireball",
+			"Magic Shield",
+			"Counterspell",
+			"Dash",
+		}
+	}
+
+	moveFmt := fmt.Sprintf(s, moves...)
+
+	return moveFmt
 }
 
+// readCharFromFile takes in filename and turns character save
+// into character class struct
+func readCharFromFile(fn string) (game.Class, error) {
+	char := game.Class{}
+
+	fn = SAVE_DIR + fn
+	f, err := os.Open(fn)
+	if err != nil {
+		return char, err
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+
+	scanner.Scan()
+	char.PlayerName = scanner.Text()
+
+	scanner.Scan()
+	char.ClassName = scanner.Text()
+
+	scanner.Scan()
+	char.Health, err = strconv.Atoi(scanner.Text())
+	if err != nil {
+		return char, err
+	}
+
+	scanner.Scan()
+	char.Stamina, err = strconv.Atoi(scanner.Text())
+	if err != nil {
+		return char, err
+	}
+
+	scanner.Scan()
+	char.Armor, err = strconv.Atoi(scanner.Text())
+	if err != nil {
+		return char, err
+	}
+
+	scanner.Scan()
+	strength, err := strconv.ParseFloat(scanner.Text(), 32)
+	char.Strength = float32(strength)
+	if err != nil {
+		return char, err
+	}
+
+	scanner.Scan()
+	dexterity, err := strconv.ParseFloat(scanner.Text(), 32)
+	char.Dexterity = float32(dexterity)
+	if err != nil {
+		return char, err
+	}
+
+	scanner.Scan()
+	intellect, err := strconv.ParseFloat(scanner.Text(), 32)
+	char.Intellect = float32(intellect)
+	if err != nil {
+		return char, err
+	}
+
+	if err := scanner.Err(); err != nil {
+		return char, err
+	}
+
+	return char, nil
+}
+
+// writeCharToFile takes in character class and writes character info
+// to a file called CharName.CharClass
 func writeCharToFile(c game.Class) error {
 	//get file from fn (overwrites if file exists)
 	fn := SAVE_DIR + c.PlayerName + "." + c.ClassName
@@ -73,9 +156,27 @@ func writeCharToFile(c game.Class) error {
 		return err
 	}
 
+	fmt.Fprint(
+		f,
+		c.PlayerName+"\n",
+		c.ClassName+"\n",
+		fmt.Sprintf("%d", c.Health)+"\n",
+		fmt.Sprintf("%d", c.Stamina)+"\n",
+		fmt.Sprintf("%d", c.Armor)+"\n",
+		fmt.Sprintf("%f", c.Strength)+"\n",
+		fmt.Sprintf("%f", c.Dexterity)+"\n",
+		fmt.Sprintf("%f", c.Intellect)+"\n",
+	)
+
+	return nil
+}
+
+// charToHTML takes in character and reads its info in and returns
+// an html table formatted string
+func charToHTML(c game.Class) (string, error) {
 	html, err := fileToString("charTable.html")
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	s := fmt.Sprintf(
@@ -89,9 +190,25 @@ func writeCharToFile(c game.Class) error {
 		"Intellect", c.Intellect,
 	)
 
-	fmt.Fprint(f, s)
+	return s, nil
+}
 
-	err = f.Close()
+// generateChar takes in a class and name and calls game to
+// generate the char and writes to file
+func generateChar(class, name string) error {
+	var char game.Class
+	switch class {
+	case "Knight":
+		char = game.NewKnight(name)
+	case "Archer":
+		char = game.NewArcher(name)
+	case "Wizard":
+		char = game.NewWizard(name)
+	default:
+		return errors.New("Could not parse class type")
+	}
+
+	err := writeCharToFile(char)
 	if err != nil {
 		return err
 	}
@@ -99,28 +216,186 @@ func writeCharToFile(c game.Class) error {
 	return nil
 }
 
-func fightScreen(w http.ResponseWriter, r *http.Request) {
+// parseMoveForm processes which move to execute and calls
+// backend in game
+func parseMoveForm(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	char1Name := vars["char1"]
+	char2Name := vars["char2"]
+	moveName := vars["move"]
+
+	c1, err := readCharFromFile(char1Name)
+	if err != nil {
+		panic(err)
+	}
+	c2, err := readCharFromFile(char2Name)
+	if err != nil {
+		panic(err)
+	}
+
+	var move game.Move
+	switch moveName {
+	case "Heavy":
+		move = game.HEAVY
+	case "Quick":
+		move = game.QUICK
+	case "Standard":
+		move = game.STANDARD
+	case "Block":
+		move = game.BLOCK
+	case "Parry":
+		move = game.PARRY
+	case "Dodge":
+		move = game.EVADE
+	}
+
+	game.Turn(&c1, &c2, move, move)
+
+	err = writeCharToFile(c1)
+	if err != nil {
+		panic(err)
+	}
+	err = writeCharToFile(c2)
+	if err != nil {
+		panic(err)
+	}
+
+	redirect := "/game/" + char1Name + "/" + char2Name
+	http.Redirect(w, r, redirect, http.StatusFound)
+}
+
+func parseNewCharForm(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(fmt.Errorf("Error: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	class := r.Form.Get("class")
+	name := r.Form.Get("name")
+
+	err = generateChar(class, name)
+	if err != nil {
+		panic(err)
+	}
+
+	http.Redirect(w, r, "/selectChar", http.StatusFound)
+}
+
+// newCharacterScreen displays a screen to create a new character
+func newCharacterScreen(w http.ResponseWriter, r *http.Request) {
+	s, err := fileToString("newCharacterScreen.html")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprint(w, s)
+}
+
+// characterSelectScreen displays all characters in save dir with
+// options to select each char
+func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
+	charFiles, err := ioutil.ReadDir(SAVE_DIR)
+	if err != nil {
+		panic(err)
+	}
+
+	var chars [][]string
+	for _, charFile := range charFiles {
+		chars = append(chars, strings.SplitN(charFile.Name(), ".", -1))
+	}
+
+	s, err := fileToString("charSelectScreen.html")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprint(w, s)
+
+	for i, char := range chars {
+		name := char[0]
+		class := char[1]
+
+		var opponent string
+		if len(charFiles) > 1 {
+			opponent = charFiles[rand.Intn(len(charFiles))].Name()
+			for opponent == charFiles[i].Name() {
+				opponent = charFiles[rand.Intn(len(charFiles))].Name()
+			}
+		} else {
+			opClass := []string{"Knight", "Archer", "Wizard"}[rand.Intn(3)]
+			opName := fmt.Sprintf("Enemy%d", i)
+			err := generateChar(opClass, opName)
+			if err != nil {
+				panic(err)
+			}
+			opponent = opName + "." + opClass
+		}
+
+		fmt.Fprintf(
+			w,
+			`
+			<tr>
+				<td>%s</td>
+				<td>%s</td>
+				<td>
+					<form action="/game/%s/%s">
+						<input type="submit" name="character" value="Select">
+					</form>
+				</td>
+			</tr>
+			`,
+			name, class,
+			charFiles[i].Name(), opponent,
+		)
+	}
+	fmt.Fprint(w, `</table></body>`)
+}
+
+// gameScreen shows character stats and moves, main game screen
+func gameScreen(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cn1 := vars["char1"]
 	cn2 := vars["char2"]
+
+	c1, err := readCharFromFile(cn1)
+	if err != nil {
+		panic(err)
+	}
+	c2, err := readCharFromFile(cn2)
+	if err != nil {
+		panic(err)
+	}
+
+	c1HTML, err := charToHTML(c1)
+	if err != nil {
+		panic(err)
+	}
+	c2HTML, err := charToHTML(c2)
+	if err != nil {
+		panic(err)
+	}
 
 	screen, err := fileToString("fightScreen.html")
 	if err != nil {
 		panic(err)
 	}
 
-	char1, err := readCharFromFile(cn1)
-	if err != nil {
-		panic(err)
-	}
-	char2, err := readCharFromFile(cn2)
-	if err != nil {
-		panic(err)
-	}
+	c1Moves := getMoves(c1)
 
-	fmt.Fprintf(w, screen, char1, char2, "holder", "holder")
+	fmt.Fprintf(w, screen, c1HTML, c2HTML, c1Moves, "")
 }
 
+func home(w http.ResponseWriter, r *http.Request) {
+	homeScreen, err := fileToString("homeScreen.html")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprint(w, homeScreen)
+}
+
+// newRouter returns a router and endpoints
 func newRouter() *mux.Router {
 	r := mux.NewRouter()
 
@@ -128,12 +403,17 @@ func newRouter() *mux.Router {
 	handler := http.StripPrefix("/assets/", fileServer)
 	r.PathPrefix("/assets/").Handler(handler)
 
-	r.HandleFunc("/newChar/{class}/{name}", generateChar)
-	r.HandleFunc("/game/{char1}/{char2}", fightScreen)
+	r.HandleFunc("/", home)
+	r.HandleFunc("/newChar", newCharacterScreen).Methods("GET")
+	r.HandleFunc("/newChar", parseNewCharForm).Methods("POST")
+	r.HandleFunc("/selectChar", characterSelectScreen).Methods("GET")
+	r.HandleFunc("/turn/{char1}/{char2}/{move}", parseMoveForm)
+	r.HandleFunc("/game/{char1}/{char2}", gameScreen)
 
 	return r
 }
 
+// Server starts server using newRouter
 func Server() {
 	r := newRouter()
 

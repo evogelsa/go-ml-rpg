@@ -2,7 +2,7 @@
 .swp
 
 # save files
-saves/*
+src/saves/*
 
 # binaries
 bin/*

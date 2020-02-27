@@ -348,7 +348,11 @@ func newCharacterScreen(w http.ResponseWriter, r *http.Request) {
 func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 	charFiles, err := ioutil.ReadDir(SAVE_DIR)
 	if err != nil {
-		panic(err)
+		if os.IsNotExist(err) {
+			os.Mkdir(SAVE_DIR, os.ModeDir)
+		} else {
+			panic(err)
+		}
 	}
 
 	var chars [][]string

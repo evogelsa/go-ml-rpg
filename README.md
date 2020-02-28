@@ -68,11 +68,12 @@ Rewards:
 - Large reward for enemy health -> 0
 
 States:
-- Health
-- Armor
-- Strength
-- Dexterity
-- Intellect
+- Health self&&enemy
+- Stamina self&&enemy
+- Armor self&&enemy
+- Strength self&&enemy
+- Dexterity self&&enemy
+- Intellect self&&enemy
 
 Actions:
 - Heavy attack

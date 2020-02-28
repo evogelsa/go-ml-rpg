@@ -340,6 +340,13 @@ func newCharacterScreen(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	style, err := fileToString("styleHead.html")
+	if err != nil {
+		panic(err)
+	}
+
+	s = style + s
+
 	fmt.Fprint(w, s)
 }
 
@@ -349,7 +356,10 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 	charFiles, err := ioutil.ReadDir(SAVE_DIR)
 	if err != nil {
 		if os.IsNotExist(err) {
-			os.Mkdir(SAVE_DIR, 0700)
+			err := os.Mkdir(SAVE_DIR, 0700)
+			if err != nil {
+				panic(err)
+			}
 		} else {
 			panic(err)
 		}
@@ -374,6 +384,14 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
+	style, err := fileToString("styleHead.html")
+	if err != nil {
+		panic(err)
+	}
+
+	s = style + s
+
 	fmt.Fprint(w, s)
 
 	nameStr, err := fileToString("names.txt")
@@ -447,6 +465,13 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
+	style, err := fileToString("styleHead.html")
+	if err != nil {
+		panic(err)
+	}
+
+	screen = style + screen
 
 	// get log file name
 	logName := fmt.Sprintf("%s%s%s%s.log",

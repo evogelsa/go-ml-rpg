@@ -340,6 +340,13 @@ func newCharacterScreen(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	style, err := fileToString("styleHead.html")
+	if err != nil {
+		panic(err)
+	}
+
+	s = style + s
+
 	fmt.Fprint(w, s)
 }
 
@@ -377,6 +384,14 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
+	style, err := fileToString("styleHead.html")
+	if err != nil {
+		panic(err)
+	}
+
+	s = style + s
+
 	fmt.Fprint(w, s)
 
 	nameStr, err := fileToString("names.txt")
@@ -450,6 +465,13 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
+	style, err := fileToString("styleHead.html")
+	if err != nil {
+		panic(err)
+	}
+
+	screen = style + screen
 
 	// get log file name
 	logName := fmt.Sprintf("%s%s%s%s.log",

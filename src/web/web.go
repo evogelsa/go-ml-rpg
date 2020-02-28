@@ -349,7 +349,7 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 	charFiles, err := ioutil.ReadDir(SAVE_DIR)
 	if err != nil {
 		if os.IsNotExist(err) {
-			os.Mkdir(SAVE_DIR, os.ModeDir)
+			os.Mkdir(SAVE_DIR, 0700)
 		} else {
 			panic(err)
 		}

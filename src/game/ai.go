@@ -1,7 +1,7 @@
 package game
 
 import (
-	"fmt"
+	"math"
 	"math/rand"
 	"reflect"
 )
@@ -33,7 +33,6 @@ func getStates(p1, p2 *Class) [][]float32 {
 
 		sOf1 = append(sOf1, v)
 	}
-	fmt.Println(sOf1)
 
 	// get values of p2 class
 	vOf2 := reflect.ValueOf(p2I).Elem()
@@ -50,7 +49,6 @@ func getStates(p1, p2 *Class) [][]float32 {
 
 		sOf2 = append(sOf2, v)
 	}
-	fmt.Println(sOf2)
 
 	var tab = make([][]float32, len(sOf2))
 	for i := 0; i < len(tab); i++ {
@@ -107,10 +105,101 @@ func minMaxHealth(p, e *Class) []float32 {
 }
 
 func minMaxArmor(p, e *Class) []float32 {
+	avgsFromPlayer := minMaxDamage(e, p)
+	var avgPlayer float32
+	for _, v := range avgsFromPlayer {
+		avgPlayer += v
+	}
+	avgPlayer /= 6
 
-	return []float32{0}
+	avgH := -avgPlayer
+	avgQ := -avgPlayer
+	avgS := -avgPlayer
+	// enemy fail block prob * avg damage
+	avgB := ((1 - e.Strength) * avgPlayer)
+	// enemy fail parry prob * extra dmg + avg damage
+	avgP := -(((1 - e.Dexterity) * float32(int(10*e.Dexterity+.5))) + avgPlayer)
+	// enemy evade prob * heal - enemy fail evade prob * avg damage
+	avgE := ((e.Intellect) * float32(int(10*e.Intellect+.5))) -
+		((1 - e.Intellect) * avgPlayer)
+
+	return []float32{avgH, avgQ, avgS, avgB, avgP, avgE}
 }
 
-func aiGetTurn(p1, p2 *Class) Move {
-	return Move(rand.Intn(6))
+func getMinMaxAll(p, e *Class) [][]float32 {
+	return [][]float32{
+		minMaxDamage(p, e),
+		minMaxHealth(p, e),
+		minMaxArmor(p, e),
+	}
+}
+
+func normalizedMinMaxes(p, e *Class) []float32 {
+	minMaxes := getMinMaxAll(p, e)
+
+	var max float32 = -math.MaxFloat32
+	for _, mm := range minMaxes {
+		for _, v := range mm {
+			if v > max {
+				max = v
+			}
+		}
+	}
+
+	var min float32 = math.MaxFloat32
+	for _, mm := range minMaxes {
+		for _, v := range mm {
+			if v < min {
+				min = v
+			}
+		}
+	}
+
+	for i, mm := range minMaxes {
+		for j := range mm {
+			minMaxes[i][j] = normalize(minMaxes[i][j], min, max)
+		}
+	}
+
+	var sum float32
+	for _, mm := range minMaxes {
+		for _, v := range mm {
+			sum += v
+		}
+	}
+
+	for i, mm := range minMaxes {
+		for j := range mm {
+			minMaxes[i][j] = normalize(minMaxes[i][j], 0, sum)
+		}
+	}
+
+	var vals []float32
+	for _, r := range minMaxes {
+		vals = append(vals, r...)
+	}
+
+	for i := 6; i < len(vals); i++ {
+		vals[i%6] += vals[i]
+	}
+
+	var ret []float32 = vals[:6]
+
+	return ret
+}
+
+func aiGetTurn(p, e *Class) Move {
+	minMaxes := normalizedMinMaxes(p, e)
+
+	r := rand.Float32()
+	var m int
+	for i, v := range minMaxes {
+		r -= v
+		if r <= 0 {
+			m = i
+			break
+		}
+	}
+
+	return Move(m)
 }

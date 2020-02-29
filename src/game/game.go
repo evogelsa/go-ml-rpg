@@ -219,16 +219,6 @@ func printTurn(p1, p2 *Class, m1, m2 Move, s1, s2 bool) string {
 	return res
 }
 
-// printStatus takes in a player and prints out the player name
-// and their current health and armor
-func checkStatus(p *Class) string {
-	if p.Health <= 0 {
-		p.Health = 0
-		return fmt.Sprintf("<h3>Game over, %s died</h3>", p.PlayerName)
-	}
-	return ""
-}
-
 // getIntInput gets an error checked integer input from os.stdin
 func getIntInput(w io.Writer) int {
 	reader := bufio.NewReader(os.Stdin)
@@ -256,7 +246,7 @@ func SelectMove(w io.Writer, p Class) Move {
 
 // Turn takes in two players and two moves and and handles the events
 // which occur from player p1 executing move m1 and p2 executing m2
-func Turn(p1, p2 *Class, m1 Move) string {
+func Turn(p1, p2 *Class, m1 Move) (string, bool) {
 	var res string
 	m2 := aiGetTurn(p1, p2)
 	def1, a1 := parseMove(p1, p2, m1)
@@ -272,7 +262,7 @@ func Turn(p1, p2 *Class, m1 Move) string {
 			handleDamage(p1, a2)
 			s2 = true
 		}
-		printTurn(p1, p2, m1, m2, s1, s2)
+		res += printTurn(p1, p2, m1, m2, s1, s2)
 		if s1 {
 			res += fmt.Sprintf("%s deals %d damage\n", p1.PlayerName, a1)
 		}
@@ -380,11 +370,20 @@ func Turn(p1, p2 *Class, m1 Move) string {
 		res += printTurn(p1, p2, m1, m2, false, false)
 		res += fmt.Sprintf("Nothing happens!\n")
 	}
-	res = checkStatus(p1) + res
-	res = checkStatus(p2) + res
-	if res == "" {
-		res += "Both attacks miss!\n"
+
+	var end bool
+
+	if p1.Health <= 0 {
+		p1.Health = 0
+		res = fmt.Sprintf("<h3>Game over, %s died</h3>", p1.PlayerName) + res
+		end = true
 	}
+	if p2.Health <= 0 {
+		p2.Health = 0
+		res = fmt.Sprintf("<h3>Game over, %s died</h3>", p2.PlayerName) + res
+		end = true
+	}
+
 	res += "----------------------------------------\n"
-	return res
+	return res, end
 }

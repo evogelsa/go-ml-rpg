@@ -289,7 +289,7 @@ func parseMoveForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// process turn and get result
-	outStr := game.Turn(&c1, &c2, move)
+	outStr, end := game.Turn(&c1, &c2, move)
 	// divwrap result
 	res := divWrap(outStr)
 	// get log file name
@@ -310,7 +310,12 @@ func parseMoveForm(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	redirect := "/game/" + char1Name + "/" + char2Name
+	var redirect string
+	if end {
+		redirect = "/end/" + char1Name + "/" + char2Name
+	} else {
+		redirect = "/game/" + char1Name + "/" + char2Name
+	}
 	http.Redirect(w, r, redirect, http.StatusFound)
 }
 
@@ -428,9 +433,15 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 						<input type="submit" name="character" value="Select">
 					</form>
 				</td>
+				<td>
+					<form action="/deleteChar/%s/%s">
+						<input type="submit" name="character" value="Delete">
+					</form>
+				</td>
 			</tr>
 			`,
 			name, class,
+			player[0]+"."+player[1], opponent,
 			player[0]+"."+player[1], opponent,
 		)
 	}
@@ -447,9 +458,16 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
 	c2, err := readCharFromFile(cn2)
 	if err != nil {
 		panic(err)
+	}
+
+	// check for game over for when select dead char
+	if c1.Health <= 0 || c2.Health <= 0 {
+		redirect := "/end/" + cn1 + "/" + cn2
+		http.Redirect(w, r, redirect, http.StatusFound)
 	}
 
 	c1HTML, err := charToHTML(c1)
@@ -496,6 +514,78 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, screen, c1HTML, c2HTML, c1Moves, info)
 }
 
+func gameEnd(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	cn1 := vars["char1"]
+	cn2 := vars["char2"]
+
+	c1, err := readCharFromFile(cn1)
+	if err != nil {
+		panic(err)
+	}
+
+	c2, err := readCharFromFile(cn2)
+	if err != nil {
+		panic(err)
+	}
+
+	style, err := fileToString("styleHead.html")
+	if err != nil {
+		panic(err)
+	}
+
+	// get log file name
+	logName := fmt.Sprintf("%s%s%s%s.log",
+		c1.PlayerName, c1.ClassName, c2.PlayerName, c2.ClassName)
+	gameLog, err := fileToString(logName)
+	if err != nil {
+		gameLog = ""
+	}
+
+	//get button to rth
+	button, err := fileToString("returnToHomeButton.html")
+	if err != nil {
+		panic(err)
+	}
+
+	screen := style + button + "<br>" + gameLog
+
+	fmt.Fprint(w, screen)
+}
+
+func deleteChar(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	cn1 := vars["char1"]
+	cn2 := vars["char2"]
+
+	c1, err := readCharFromFile(cn1)
+	if err != nil {
+		panic(err)
+	}
+
+	c2, err := readCharFromFile(cn2)
+	if err != nil {
+		panic(err)
+	}
+
+	err = os.Remove(SAVE_DIR + cn1)
+	if err != nil {
+		panic(err)
+	}
+
+	err = os.Remove(SAVE_DIR + cn2)
+	if err != nil {
+		panic(err)
+	}
+
+	logName := fmt.Sprintf("%s%s%s%s.log",
+		c1.PlayerName, c1.ClassName, c2.PlayerName, c2.ClassName)
+
+	os.Remove(FILE_DIR + logName)
+
+	http.Redirect(w, r, "/selectChar", http.StatusFound)
+}
+
 func home(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/selectChar", http.StatusFound)
 }
@@ -512,8 +602,10 @@ func newRouter() *mux.Router {
 	r.HandleFunc("/newChar", newCharacterScreen).Methods("GET")
 	r.HandleFunc("/newChar", parseNewCharForm).Methods("POST")
 	r.HandleFunc("/selectChar", characterSelectScreen).Methods("GET")
+	r.HandleFunc("/deleteChar/{char1}/{char2}", deleteChar)
 	r.HandleFunc("/turn/{char1}/{char2}/{move}", parseMoveForm)
 	r.HandleFunc("/game/{char1}/{char2}", gameScreen)
+	r.HandleFunc("/end/{char1}/{char2}", gameEnd)
 
 	return r
 }

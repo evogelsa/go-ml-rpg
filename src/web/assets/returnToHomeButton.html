@@ -1,0 +1,8 @@
+<script>
+function redirect(page) {
+    var hostname = "http://" + window.location.hostname + ":8080/";
+    var ref = hostname + page;
+    window.location.href = ref
+}
+</script>
+<button onclick="redirect('/selectChar')">Return to home</button>

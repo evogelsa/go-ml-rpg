@@ -90,13 +90,13 @@ func minMaxHealth(p, e *Class) []float32 {
 	avgH := -avgPlayer
 	avgQ := -avgPlayer
 	avgS := -avgPlayer
-	// enemy block prob * avg heal - enemy fail block prob * avg damage
-	avgB := (((e.Strength) * float32(int(10*e.Strength+.5))) -
-		((1 - e.Strength) * avgPlayer))
+	// enemy fail block prob * avg damage
+	avgB := ((1 - e.Strength) * avgPlayer)
 	// enemy fail parry prob * extra dmg + avg damage
 	avgP := -(((1 - e.Dexterity) * float32(int(10*e.Dexterity+.5))) + avgPlayer)
-	// enemy fail evade prob * avg damage
-	avgE := -((1 - e.Intellect) * avgPlayer)
+	// enemy evade prob * heal - enemy fail evade prob * avg damage
+	avgE := ((e.Intellect) * float32(int(10*e.Intellect+.5))) -
+		((1 - e.Intellect) * avgPlayer)
 
 	return []float32{avgH, avgQ, avgS, avgB, avgP, avgE}
 }
@@ -112,13 +112,13 @@ func minMaxArmor(p, e *Class) []float32 {
 	avgH := -avgPlayer
 	avgQ := -avgPlayer
 	avgS := -avgPlayer
-	// enemy fail block prob * avg damage
-	avgB := ((1 - e.Strength) * avgPlayer)
+	// enemy block prob * avg heal - enemy fail block prob * avg damage
+	avgB := (((e.Strength) * float32(int(10*e.Strength+.5))) -
+		((1 - e.Strength) * avgPlayer))
 	// enemy fail parry prob * extra dmg + avg damage
 	avgP := -(((1 - e.Dexterity) * float32(int(10*e.Dexterity+.5))) + avgPlayer)
-	// enemy evade prob * heal - enemy fail evade prob * avg damage
-	avgE := ((e.Intellect) * float32(int(10*e.Intellect+.5))) -
-		((1 - e.Intellect) * avgPlayer)
+	// enemy fail evade prob * avg damage
+	avgE := -((1 - e.Intellect) * avgPlayer)
 
 	return []float32{avgH, avgQ, avgS, avgB, avgP, avgE}
 }

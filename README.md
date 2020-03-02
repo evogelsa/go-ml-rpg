@@ -58,7 +58,19 @@ assigned to that player character.
 
 This portion is all TODO. What follows is dev notes:
 
-#### Q Learning
+#### MinMax Strategy
+
+The AI creates a matrix which represents the minimum and maximum outcomes for
+each move. Each cell has an average value associated with it. A positive value
+means a net good outcome, and a negative value has a net bad outcome. These
+averages are all normalized and the normalized values are used as a weight. A
+random number is generated and a move is selected based off of the weighted
+values which were generated. This creates a pseudorandom move selection set
+where the computer enemy will prefer moves which will have a good chance of
+having a positive outcome for itself. Positive outcomes involve damaging the
+player, healing its own health, and repairing its armor.
+
+#### Deep Reinforcement Learning
 
 Rewards:
 - Small penalty for losing health or armor

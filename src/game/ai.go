@@ -6,6 +6,16 @@ import (
 	"reflect"
 )
 
+type Algorithm int
+
+const (
+	AI_RAND Algorithm = iota
+	AI_MINMAX
+	AI_NEURAL
+)
+
+var AI_ALG Algorithm
+
 //Q(s,a) = reward + discount*(max future reward)
 
 // normalize takes a number with values between min and
@@ -14,7 +24,11 @@ func normalize(n, min, max float32) float32 {
 	return (n - min) / (max - min)
 }
 
-func getStates(p1, p2 *Class) [][]float32 {
+func enumStates() [][]float32 {
+	return [][]float32{{0}}
+}
+
+func getState(p1, p2 *Class) []float32 {
 	var p1I interface{} = p1
 	var p2I interface{} = p2
 
@@ -24,13 +38,6 @@ func getStates(p1, p2 *Class) [][]float32 {
 	for i := 2; i < vOf1.NumField(); i++ {
 		// ignore player and class name, convert all to float32
 		v := vOf1.Field(i).Interface().(float32)
-		// normalize health, stamina, armor
-		if i < 4 {
-			v = normalize(v, 0, 100)
-		} else if i == 4 {
-			v = normalize(v, 0, 20)
-		}
-
 		sOf1 = append(sOf1, v)
 	}
 
@@ -40,28 +47,18 @@ func getStates(p1, p2 *Class) [][]float32 {
 	for i := 2; i < vOf2.NumField(); i++ {
 		// ignore player and class name, convert all to float32
 		v := vOf2.Field(i).Interface().(float32)
-		// normalize health, stamina, and armor
-		if i < 4 {
-			v = normalize(v, 0, 100)
-		} else if i == 4 {
-			v = normalize(v, 0, 20)
-		}
-
 		sOf2 = append(sOf2, v)
 	}
 
-	var tab = make([][]float32, len(sOf2))
-	for i := 0; i < len(tab); i++ {
-		tab[i] = make([]float32, len(sOf1))
+	states := make([]float32, len(sOf1)+len(sOf2))
+	for i := 0; i < len(sOf1); i++ {
+		states[i] = sOf1[i]
+	}
+	for i := len(sOf1); i < len(sOf2); i++ {
+		states[i] = sOf2[i-len(sOf1)]
 	}
 
-	for i := 0; i < len(sOf2); i++ {
-		for j := 0; j < len(sOf1); j++ {
-			tab[i][j] = sOf2[i] * sOf1[j]
-		}
-	}
-
-	return tab
+	return states
 }
 
 // minMaxDamage returns array of avg outcome for each move wrt
@@ -188,7 +185,7 @@ func normalizedMinMaxes(p, e *Class) []float32 {
 	return ret
 }
 
-func aiGetTurn(p, e *Class) Move {
+func getTurnMinMax(p, e *Class) Move {
 	minMaxes := normalizedMinMaxes(p, e)
 
 	r := rand.Float32()
@@ -202,4 +199,21 @@ func aiGetTurn(p, e *Class) Move {
 	}
 
 	return Move(m)
+}
+
+func getTurnRand(p, e *Class) Move {
+	return Move(rand.Intn(6))
+}
+
+func aiGetTurn(p, e *Class) Move {
+	var m Move
+
+	switch AI_ALG {
+	case AI_RAND:
+		m = getTurnRand(p, e)
+	case AI_MINMAX:
+		m = getTurnMinMax(p, e)
+	}
+
+	return m
 }

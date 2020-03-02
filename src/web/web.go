@@ -146,12 +146,6 @@ func readCharFromFile(fn string) (game.Class, error) {
 	}
 
 	scanner.Scan()
-	char.Stamina, err = strconv.Atoi(scanner.Text())
-	if err != nil {
-		return char, err
-	}
-
-	scanner.Scan()
 	char.Armor, err = strconv.Atoi(scanner.Text())
 	if err != nil {
 		return char, err
@@ -200,7 +194,6 @@ func writeCharToFile(c game.Class) error {
 		c.PlayerName+"\n",
 		c.ClassName+"\n",
 		fmt.Sprintf("%d", c.Health)+"\n",
-		fmt.Sprintf("%d", c.Stamina)+"\n",
 		fmt.Sprintf("%d", c.Armor)+"\n",
 		fmt.Sprintf("%f", c.Strength)+"\n",
 		fmt.Sprintf("%f", c.Dexterity)+"\n",
@@ -222,7 +215,6 @@ func charToHTML(c game.Class) (string, error) {
 		html,
 		c.PlayerName, c.ClassName,
 		"Health", c.Health,
-		"Stamina", c.Stamina,
 		"Armor", c.Armor,
 		"Strength", c.Strength,
 		"Dexterity", c.Dexterity,

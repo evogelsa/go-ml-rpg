@@ -55,9 +55,6 @@ func TestNewKnight(t *testing.T) {
 		if c.Health < 80 || c.Health > 100 {
 			hs = append(hs, []interface{}{c.Health, i})
 		}
-		if c.Stamina < 50 || c.Stamina > 70 {
-			ss = append(ss, []interface{}{c.Stamina, i})
-		}
 		if c.Armor < 0 || c.Armor > 20 {
 			as = append(as, []interface{}{c.Armor, i})
 		}
@@ -92,9 +89,6 @@ func TestNewArcher(t *testing.T) {
 		if c.Health < 80 || c.Health > 100 {
 			hs = append(hs, []interface{}{c.Health, i})
 		}
-		if c.Stamina < 50 || c.Stamina > 70 {
-			ss = append(ss, []interface{}{c.Stamina, i})
-		}
 		if c.Armor < 0 || c.Armor > 20 {
 			as = append(as, []interface{}{c.Armor, i})
 		}
@@ -128,9 +122,6 @@ func TestNewWizard(t *testing.T) {
 		}
 		if c.Health < 80 || c.Health > 100 {
 			hs = append(hs, []interface{}{c.Health, i})
-		}
-		if c.Stamina < 50 || c.Stamina > 70 {
-			ss = append(ss, []interface{}{c.Stamina, i})
 		}
 		if c.Armor < 0 || c.Armor > 20 {
 			as = append(as, []interface{}{c.Armor, i})

@@ -25,7 +25,6 @@ type Class struct {
 	PlayerName string
 	ClassName  string
 	Health     int     // capped 100
-	Stamina    int     // capped 100
 	Armor      int     // capped 20
 	Strength   float32 // normalized
 	Dexterity  float32 // normalized
@@ -38,7 +37,6 @@ func NewKnight(playerName string) Class {
 		PlayerName: playerName,
 		ClassName:  "Knight",
 		Health:     rand.Intn(20+1) + 80,
-		Stamina:    rand.Intn(20+1) + 50,
 		Armor:      rand.Intn(20 + 1),
 		Strength:   float32(rand.Intn(5+1)+15) / 20,
 		Dexterity:  float32(rand.Intn(5+1)+10) / 20,
@@ -52,7 +50,6 @@ func NewArcher(playerName string) Class {
 		PlayerName: playerName,
 		ClassName:  "Archer",
 		Health:     rand.Intn(20+1) + 80,
-		Stamina:    rand.Intn(20+1) + 50,
 		Armor:      rand.Intn(20 + 1),
 		Strength:   float32(rand.Intn(5+1)+5) / 20,
 		Dexterity:  float32(rand.Intn(5+1)+15) / 20,
@@ -66,7 +63,6 @@ func NewWizard(playerName string) Class {
 		PlayerName: playerName,
 		ClassName:  "Wizard",
 		Health:     rand.Intn(20+1) + 80,
-		Stamina:    rand.Intn(20+1) + 50,
 		Armor:      rand.Intn(20 + 1),
 		Strength:   float32(rand.Intn(5+1)+10) / 20,
 		Dexterity:  float32(rand.Intn(5+1)+5) / 20,
@@ -278,6 +274,9 @@ func Turn(p1, p2 *Class, m1 Move) (string, bool) {
 			// takes damage of p1
 			if a2 > 0 {
 				p2.Armor += a2
+				if p2.Armor > 20 {
+					p2.Armor = 20
+				}
 				res += printTurn(p1, p2, m1, m2, false, true)
 				res += fmt.Sprintf("%s repairs armor for %d points\n",
 					p2.PlayerName, a2)
@@ -307,6 +306,9 @@ func Turn(p1, p2 *Class, m1 Move) (string, bool) {
 			// takes damage of p1 attack
 			if a2 > 0 {
 				p2.Health += a2
+				if p2.Health > 100 {
+					p2.Health = 100
+				}
 				res += printTurn(p1, p2, m1, m2, false, true)
 				res += fmt.Sprintf("%s heals %d damage\n", p2.PlayerName, a2)
 			} else if a1 > 0 {
@@ -326,6 +328,9 @@ func Turn(p1, p2 *Class, m1 Move) (string, bool) {
 			// takes damage of p2
 			if a1 > 0 {
 				p1.Armor += a1
+				if p1.Armor > 20 {
+					p1.Armor = 20
+				}
 				res += printTurn(p1, p2, m1, m2, true, false)
 				res += fmt.Sprintf("%s repairs armor for %d points\n",
 					p1.PlayerName, a1)
@@ -355,6 +360,9 @@ func Turn(p1, p2 *Class, m1 Move) (string, bool) {
 			// takes damage of p2 attack
 			if a1 > 0 {
 				p1.Health += a1
+				if p1.Health > 100 {
+					p1.Health = 100
+				}
 				res += printTurn(p1, p2, m1, m2, true, false)
 				res += fmt.Sprintf("%s heals %d damage\n", p1.PlayerName, a1)
 			} else if a2 > 0 {

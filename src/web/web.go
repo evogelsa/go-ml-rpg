@@ -543,7 +543,6 @@ func getImageStrings(c1, c2 game.Class) ([]string, error) {
 	img2 := "../../assets/imgs/" + scanner.Text()
 
 	images = []string{img1, img2}
-	fmt.Println(images)
 
 	//open file, parse two lines
 	//return two imagefile name corresponding to both moves

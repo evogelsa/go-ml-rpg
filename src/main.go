@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	// define ai flag
+	// define ai flag with default minmax
 	aiAlg := flag.String("ai", "minmax",
 		"Specifies algorithm AI will use. Options:"+
 			"\n\trand\n\tminmax\n\tneural\n")
@@ -19,13 +19,14 @@ func main() {
 	// parse flags
 	flag.Parse()
 
+	// set algorithm accordingly to commandline flag
 	switch *aiAlg {
-	case "rand":
-		fmt.Println("Using AI Rand")
-		game.AI_ALG = game.AI_RAND
 	case "minmax":
 		fmt.Println("Using AI MinMax")
 		game.AI_ALG = game.AI_MINMAX
+	case "rand":
+		fmt.Println("Using AI Rand")
+		game.AI_ALG = game.AI_RAND
 	case "neural":
 		fmt.Println("Using AI Neural")
 		game.AI_ALG = game.AI_NEURAL
@@ -35,6 +36,8 @@ func main() {
 		game.AI_ALG = game.AI_MINMAX
 	}
 
+	// seed random function with time
 	rand.Seed(time.Now().Unix())
+	// start webserver
 	web.Server()
 }

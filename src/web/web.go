@@ -19,6 +19,7 @@ import (
 
 const (
 	FILE_DIR = "./web/assets/"
+	IMG_DIR  = "./web/assets/imgs/"
 	SAVE_DIR = "./saves/"
 	PORT     = ":8080"
 )
@@ -36,6 +37,7 @@ func fileToString(fn string) (string, error) {
 	return text, nil
 }
 
+// logFile adds logStr to file specified by fn inside FILE_DIR
 func logFile(fn, logStr string) error {
 	fn = FILE_DIR + fn
 
@@ -188,6 +190,7 @@ func writeCharToFile(c game.Class) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	fmt.Fprint(
 		f,
@@ -281,7 +284,15 @@ func parseMoveForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// process turn and get result
-	outStr, end := game.Turn(&c1, &c2, move)
+	enemyMove := game.AIGetTurn(&c1, &c2)
+	outStr, end := game.Turn(&c1, &c2, move, enemyMove)
+
+	// write turns to file
+	err = setImages(c1, c2, move, enemyMove)
+	if err != nil {
+		panic(err)
+	}
+
 	// divwrap result
 	res := divWrap(outStr)
 	// get log file name
@@ -311,6 +322,8 @@ func parseMoveForm(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirect, http.StatusFound)
 }
 
+// parseNewCharForm handles extracting the name and class from character
+// creation screen and generating a new character with that info
 func parseNewCharForm(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -440,6 +453,103 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, `</table></body>`)
 }
 
+func setImages(c1, c2 game.Class, m1, m2 game.Move) error {
+	filePrefix := c1.PlayerName + c1.ClassName + c2.PlayerName + c2.ClassName
+
+	fn := IMG_DIR + filePrefix + ".images"
+	f, err := os.Create(fn)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// parse moves to string
+	var m1Str string
+	switch m1 {
+	case game.HEAVY:
+		m1Str = "HEAVY"
+	case game.QUICK:
+		m1Str = "QUICK"
+	case game.STANDARD:
+		m1Str = "STANDARD"
+	case game.BLOCK:
+		m1Str = "BLOCK"
+	case game.PARRY:
+		m1Str = "PARRY"
+	case game.EVADE:
+		m1Str = "EVADE"
+	}
+
+	var m2Str string
+	switch m2 {
+	case game.HEAVY:
+		m2Str = "HEAVY"
+	case game.QUICK:
+		m2Str = "QUICK"
+	case game.STANDARD:
+		m2Str = "STANDARD"
+	case game.BLOCK:
+		m2Str = "BLOCK"
+	case game.PARRY:
+		m2Str = "PARRY"
+	case game.EVADE:
+		m2Str = "EVADE"
+	}
+
+	fmt.Fprint(
+		f,
+		c1.ClassName+"-"+m1Str+".png"+"\n",
+		c2.ClassName+"-"+m2Str+".png"+"\n",
+	)
+
+	return nil
+}
+
+func getImageStrings(c1, c2 game.Class) ([]string, error) {
+	var images []string
+
+	filePrefix := c1.PlayerName + c1.ClassName + c2.PlayerName + c2.ClassName
+
+	fn := IMG_DIR + filePrefix + ".images"
+	f, err := os.Open(fn)
+	if err != nil {
+		if os.IsNotExist(err) {
+			f, err = os.Create(fn)
+			if err != nil {
+				return images, err
+			}
+			fmt.Fprint(
+				f,
+				c1.ClassName+"-"+"IDLE"+".png"+"\n",
+				c2.ClassName+"-"+"IDLE"+".png"+"\n",
+			)
+			f.Close()
+			f, err = os.Open(fn)
+			if err != nil {
+				return images, err
+			}
+		} else {
+			return images, err
+		}
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+
+	scanner.Scan()
+	img1 := "../../assets/imgs/" + scanner.Text()
+
+	scanner.Scan()
+	img2 := "../../assets/imgs/" + scanner.Text()
+
+	images = []string{img1, img2}
+	fmt.Println(images)
+
+	//open file, parse two lines
+	//return two imagefile name corresponding to both moves
+	return images, nil
+}
+
 // gameScreen shows character stats and moves, main game screen
 func gameScreen(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -503,7 +613,12 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 		"Evade effective with high int, heals HP\n<br>"
 	info = divWrap(info)
 
-	fmt.Fprintf(w, screen, c1HTML, c2HTML, c1Moves, info)
+	images, err := getImageStrings(c1, c2)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintf(w, screen, c1HTML, c2HTML, c1Moves, info, images[0], images[1])
 }
 
 func gameEnd(w http.ResponseWriter, r *http.Request) {
@@ -574,6 +689,11 @@ func deleteChar(w http.ResponseWriter, r *http.Request) {
 		c1.PlayerName, c1.ClassName, c2.PlayerName, c2.ClassName)
 
 	os.Remove(FILE_DIR + logName)
+
+	imagesName := fmt.Sprintf("%s%s%s%s.images",
+		c1.PlayerName, c1.ClassName, c2.PlayerName, c2.ClassName)
+
+	os.Remove(IMG_DIR + imagesName)
 
 	http.Redirect(w, r, "/selectChar", http.StatusFound)
 }

@@ -1,47 +1,47 @@
 <table style="width:100%%">
-    <tr>
-        <td>Heavy Attack</td>
-        <td>
-            <button onclick="redirect('Heavy')">%s</button>
-        </td>
-    </tr>
-    <tr>
-        <td>Quick Attack</td>
-        <td>
-            <button onclick="redirect('Quick')">%s</button>
-        </td>
-    </tr>
-    <tr>
-        <td>Standard Attack</td>
-        <td>
-            <button onclick="redirect('Standard')">%s</button>
-        </td>
-    </tr>
-    <tr>
-        <td>Block</td>
-        <td>
-            <button onclick="redirect('Block')">%s</button>
-        </td>
-    </tr>
-    <tr>
-        <td>Parry</td>
-        <td>
-            <button onclick="redirect('Parry')">%s</button>
-        </td>
-    </tr>
-    <tr>
-        <td>Evade</td>
-        <td>
-            <button onclick="redirect('Evade')">%s</button>
-        </td>
-    </tr>
+  <tr>
+    <td>Heavy Attack</td>
+    <td>
+      <button onclick="redirect('Heavy')">%s</button>
+    </td>
+  </tr>
+  <tr>
+    <td>Quick Attack</td>
+    <td>
+      <button onclick="redirect('Quick')">%s</button>
+    </td>
+  </tr>
+  <tr>
+    <td>Standard Attack</td>
+    <td>
+      <button onclick="redirect('Standard')">%s</button>
+    </td>
+  </tr>
+  <tr>
+    <td>Block</td>
+    <td>
+      <button onclick="redirect('Block')">%s</button>
+    </td>
+  </tr>
+  <tr>
+    <td>Parry</td>
+    <td>
+      <button onclick="redirect('Parry')">%s</button>
+    </td>
+  </tr>
+  <tr>
+    <td>Evade</td>
+    <td>
+      <button onclick="redirect('Evade')">%s</button>
+    </td>
+  </tr>
 </table>
 <script>
 function redirect(move) {
-    var hostname = "http://" + window.location.hostname + ":8080/";
-    var char1 = window.location.pathname.split("/")[2] + "/";
-    var char2 = window.location.pathname.split("/")[3] + "/";
-    var ref = hostname + "turn/" + char1 + char2 + "/" + move;
-    window.location.replace(ref)
+  var hostname = "http://" + window.location.hostname + ":8080/";
+  var char1 = window.location.pathname.split("/")[2] + "/";
+  var char2 = window.location.pathname.split("/")[3] + "/";
+  var ref = hostname + "turn/" + char1 + char2 + "/" + move;
+  window.location.replace(ref)
 }
 </script>

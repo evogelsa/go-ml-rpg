@@ -9,14 +9,14 @@ import (
 type Algorithm int
 
 const (
-	AI_RAND Algorithm = iota
-	AI_MINMAX
+	AI_MINMAX Algorithm = iota
+	AI_RAND
 	AI_NEURAL
 )
 
+// AI_ALG is set by main which uses cmd line flags to
+// set the desired ai algorithm
 var AI_ALG Algorithm
-
-//Q(s,a) = reward + discount*(max future reward)
 
 // normalize takes a number with values between min and
 // max and normalizes it to between 0 and 1
@@ -28,33 +28,35 @@ func enumStates() [][]float32 {
 	return [][]float32{{0}}
 }
 
-func getState(p1, p2 *Class) []float32 {
+// getState returns an interface containing health, armor, and stats
+// for both players in the game.
+func getState(p1, p2 *Class) []interface{} {
 	var p1I interface{} = p1
 	var p2I interface{} = p2
 
 	// get values of p1 class
 	vOf1 := reflect.ValueOf(p1I).Elem()
-	var sOf1 []float32
+	var sOf1 []interface{}
 	for i := 2; i < vOf1.NumField(); i++ {
 		// ignore player and class name, convert all to float32
-		v := vOf1.Field(i).Interface().(float32)
+		v := vOf1.Field(i).Interface()
 		sOf1 = append(sOf1, v)
 	}
 
 	// get values of p2 class
 	vOf2 := reflect.ValueOf(p2I).Elem()
-	var sOf2 []float32
+	var sOf2 []interface{}
 	for i := 2; i < vOf2.NumField(); i++ {
 		// ignore player and class name, convert all to float32
-		v := vOf2.Field(i).Interface().(float32)
+		v := vOf2.Field(i).Interface()
 		sOf2 = append(sOf2, v)
 	}
 
-	states := make([]float32, len(sOf1)+len(sOf2))
+	states := make([]interface{}, len(sOf1)+len(sOf2))
 	for i := 0; i < len(sOf1); i++ {
-		states[i] = sOf1[i]
+		states[i] = (sOf1[i])
 	}
-	for i := len(sOf1); i < len(sOf2); i++ {
+	for i := len(sOf1); i < len(sOf2)+len(sOf1); i++ {
 		states[i] = sOf2[i-len(sOf1)]
 	}
 
@@ -101,6 +103,8 @@ func minMaxHealth(p, e *Class) []float32 {
 	return []float32{avgH, avgQ, avgS, avgB, avgP, avgE}
 }
 
+// min/maxArmor gets avg outcome for each move wrt to change in
+// enemy armor
 func minMaxArmor(p, e *Class) []float32 {
 	avgsFromPlayer := minMaxDamage(e, p)
 	var avgPlayer float32
@@ -123,6 +127,8 @@ func minMaxArmor(p, e *Class) []float32 {
 	return []float32{avgH, avgQ, avgS, avgB, avgP, avgE}
 }
 
+// getMinMaxAll calls the three minmax funcs and returns array containing
+// all of the results.
 func getMinMaxAll(p, e *Class) [][]float32 {
 	return [][]float32{
 		minMaxDamage(p, e),
@@ -131,6 +137,8 @@ func getMinMaxAll(p, e *Class) [][]float32 {
 	}
 }
 
+// normalizedMinMaxes returns a normalized slice containing weights
+// for each move, sums to 1
 func normalizedMinMaxes(p, e *Class) []float32 {
 	minMaxes := getMinMaxAll(p, e)
 
@@ -185,6 +193,8 @@ func normalizedMinMaxes(p, e *Class) []float32 {
 	return ret
 }
 
+// getTurnMinMax uses the minmax strategy to determine weighted probabilities
+// for each move and pseudorandomly selects the move to use based on weights
 func getTurnMinMax(p, e *Class) Move {
 	minMaxes := normalizedMinMaxes(p, e)
 
@@ -197,22 +207,24 @@ func getTurnMinMax(p, e *Class) Move {
 			break
 		}
 	}
-
 	return Move(m)
 }
 
+// getTurnRand randomly selects a move to use
 func getTurnRand(p, e *Class) Move {
 	return Move(rand.Intn(6))
 }
 
-func aiGetTurn(p, e *Class) Move {
+// aiGetTurn handles getting the next move of the AI using whatever strategy was
+// selected at server launch
+func AIGetTurn(p, e *Class) Move {
 	var m Move
 
 	switch AI_ALG {
-	case AI_RAND:
-		m = getTurnRand(p, e)
 	case AI_MINMAX:
 		m = getTurnMinMax(p, e)
+	case AI_RAND:
+		m = getTurnRand(p, e)
 	}
 
 	return m

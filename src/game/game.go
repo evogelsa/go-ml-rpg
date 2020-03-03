@@ -242,9 +242,8 @@ func SelectMove(w io.Writer, p Class) Move {
 
 // Turn takes in two players and two moves and and handles the events
 // which occur from player p1 executing move m1 and p2 executing m2
-func Turn(p1, p2 *Class, m1 Move) (string, bool) {
+func Turn(p1, p2 *Class, m1, m2 Move) (string, bool) {
 	var res string
-	m2 := aiGetTurn(p1, p2)
 	def1, a1 := parseMove(p1, p2, m1)
 	def2, a2 := parseMove(p2, p1, m2)
 	if !def1 && !def2 {

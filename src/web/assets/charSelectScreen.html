@@ -1,18 +1,18 @@
 <script>
 function redirect(page) {
-    var hostname = "http://" + window.location.hostname + ":8080/";
-    var ref = hostname + page;
-    window.location.href = ref
+  var hostname = "http://" + window.location.hostname + ":8080/";
+  var ref = hostname + page;
+  window.location.href = ref
 }
 </script>
 <body>
-    <h2>Select a character</h2>
-    <button onclick="redirect('/newChar')">New Character</button>
-    <br><br>
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Class</th>
-            <th>Select</th>
-            <th>Delete</th>
-        </tr>
+  <h2>Select a character</h2>
+  <button onclick="redirect('/newChar')">New Character</button>
+  <br><br>
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Class</th>
+      <th>Select</th>
+      <th>Delete</th>
+    </tr>

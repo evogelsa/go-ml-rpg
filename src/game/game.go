@@ -391,6 +391,6 @@ func Turn(p1, p2 *Class, m1, m2 Move) (string, bool) {
 		end = true
 	}
 
-	res += "----------------------------------------\n"
+	res += "\n"
 	return res, end
 }

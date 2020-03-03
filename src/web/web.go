@@ -600,6 +600,12 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 		gameLog = ""
 	}
 
+	rthButton, err := fileToString("returnToHomeButton.html")
+	if err != nil {
+		panic(err)
+	}
+
+	// screen += "<br>" + rthButton + "<br>" + gameLog
 	screen += "<br>" + gameLog
 
 	c1Moves := getMoves(c1)
@@ -611,6 +617,8 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 		"Parry effective with high dex, counters but can backfire\n<br>" +
 		"Evade effective with high int, heals HP\n<br>"
 	info = divWrap(info)
+
+	info += "<br><br>" + rthButton
 
 	images, err := getImageStrings(c1, c2)
 	if err != nil {

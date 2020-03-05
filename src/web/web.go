@@ -335,12 +335,25 @@ func parseNewCharForm(w http.ResponseWriter, r *http.Request) {
 	class := r.Form.Get("class")
 	name := r.Form.Get("name")
 
-	err = generateChar(class, name)
-	if err != nil {
-		panic(err)
-	}
+	if name == "" {
+		style, err := fileToString("styleHead.html")
+		if err != nil {
+			panic(err)
+		}
+		body, err := fileToString("newCharacterScreen.html")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprint(w, style+body)
+		fmt.Fprint(w, `<h3 style="color:red">Character name cannot be empty!</h3>`)
+	} else {
+		err = generateChar(class, name)
+		if err != nil {
+			panic(err)
+		}
 
-	http.Redirect(w, r, "/selectChar", http.StatusFound)
+		http.Redirect(w, r, "/selectChar", http.StatusFound)
+	}
 }
 
 // newCharacterScreen displays a screen to create a new character

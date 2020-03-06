@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 
 	"github.iu.edu/evogelsa/go-ml-rpg/game"
 
@@ -19,11 +20,16 @@ import (
 
 const (
 	FILE_DIR = "./web/assets/"
-	IMG_DIR  = "./web/assets/imgs/"
 	SAVE_DIR = "./saves/"
-	LOG_DIR  = "./logs/"
+	IMG_DIR  = SAVE_DIR + "imgs/"
+	CHAR_DIR = SAVE_DIR + "characters/"
+	LOG_DIR  = SAVE_DIR + "logs/"
 	PORT     = ":8080"
 )
+
+var enemyMap map[string]string
+var enemyMapLock sync.RWMutex
+var enemyMapLoaded bool
 
 // fileToString takes in file name and convert to string
 func fileToString(fn string) (string, error) {
@@ -151,7 +157,7 @@ func getMoves(char game.Class) string {
 func readCharFromFile(fn string) (game.Class, error) {
 	char := game.Class{}
 
-	fn = SAVE_DIR + fn
+	fn = CHAR_DIR + fn
 	f, err := os.Open(fn)
 	if err != nil {
 		return char, err
@@ -171,7 +177,7 @@ func readCharFromFile(fn string) (game.Class, error) {
 // to a file called CharName.CharClass
 func writeCharToFile(c game.Class) error {
 	//get file from fn (overwrites if file exists)
-	fn := SAVE_DIR + c.PlayerName + "." + c.ClassName
+	fn := CHAR_DIR + c.PlayerName + "." + c.ClassName
 	f, err := os.Create(fn)
 	if err != nil {
 		return err
@@ -354,13 +360,91 @@ func newCharacterScreen(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, s)
 }
 
+func initEnemyMap() {
+	enemyMapLock.Lock()
+	defer enemyMapLock.Unlock()
+
+	// check if qtable already exists
+	_, err := os.Stat(SAVE_DIR + "enemy_map")
+	if err == nil {
+		loadEnemyMap()
+	} else {
+		enemyMap = make(map[string]string)
+	}
+	enemyMapLoaded = true
+}
+
+func loadEnemyMap() {
+	// only call from initQT
+	f, err := os.Open(SAVE_DIR + "enemy_map")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	dec := gob.NewDecoder(f)
+	err = dec.Decode(&enemyMap)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func saveEnemyMap() {
+	enemyMapLock.RLock()
+	defer enemyMapLock.RUnlock()
+
+	f, err := os.Create(SAVE_DIR + "enemy_map")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	enc := gob.NewEncoder(f)
+	err = enc.Encode(enemyMap)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func getOpponent(character string) string {
+	enemyMapLock.RLock()
+
+	opponent, ok := enemyMap[character]
+	enemyMapLock.RUnlock()
+	if !ok {
+		nameStr, err := fileToString("names.txt")
+		if err != nil {
+			panic(err)
+		}
+		names := strings.SplitN(nameStr, ",", -1)
+
+		opClass := []string{"Knight", "Archer", "Wizard"}[rand.Intn(3)]
+		opName := fmt.Sprintf("%s_enemy", names[rand.Intn(len(names))])
+		err = generateChar(opClass, opName)
+		if err != nil {
+			panic(err)
+		}
+		opponent = opName + "." + opClass
+
+		enemyMapLock.Lock()
+		enemyMap[character] = opponent
+		enemyMapLock.Unlock()
+		saveEnemyMap()
+	}
+	return opponent
+}
+
 // characterSelectScreen displays all characters in save dir with
 // options to select each char
 func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
-	charFiles, err := ioutil.ReadDir(SAVE_DIR)
+	if !enemyMapLoaded {
+		initEnemyMap()
+	}
+
+	charFiles, err := ioutil.ReadDir(CHAR_DIR)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err := os.Mkdir(SAVE_DIR, 0700)
+			err := os.Mkdir(CHAR_DIR, 0700)
 			if err != nil {
 				panic(err)
 			}
@@ -375,11 +459,8 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var players [][]string
-	var enemies [][]string
 	for _, char := range chars {
-		if strings.Contains(char[0], "_enemy") {
-			enemies = append(enemies, char)
-		} else {
+		if !strings.Contains(char[0], "_enemy") {
 			players = append(players, char)
 		}
 	}
@@ -398,28 +479,12 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w, s)
 
-	nameStr, err := fileToString("names.txt")
-	if err != nil {
-		panic(err)
-	}
-	names := strings.SplitN(nameStr, ",", -1)
-
-	for i, player := range players {
+	for _, player := range players {
 		name := player[0]
 		class := player[1]
 
-		var opponent string
-		if len(enemies) >= len(players) {
-			opponent = enemies[i][0] + "." + enemies[i][1]
-		} else {
-			opClass := []string{"Knight", "Archer", "Wizard"}[rand.Intn(3)]
-			opName := fmt.Sprintf("%s_enemy", names[rand.Intn(len(names))])
-			err := generateChar(opClass, opName)
-			if err != nil {
-				panic(err)
-			}
-			opponent = opName + "." + opClass
-		}
+		character := name + "." + class
+		opponent := getOpponent(character)
 
 		fmt.Fprintf(
 			w,
@@ -440,8 +505,8 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 			</tr>
 			`,
 			name, class,
-			player[0]+"."+player[1], opponent,
-			player[0]+"."+player[1], opponent,
+			character, opponent,
+			character, opponent,
 		)
 	}
 	fmt.Fprint(w, `</table></body>`)
@@ -507,6 +572,14 @@ func getImageStrings(c1, c2 game.Class) ([]string, error) {
 	fn := IMG_DIR + filePrefix + ".images"
 	f, err := os.Open(fn)
 	if err != nil {
+		if _, dirDNE := ioutil.ReadDir(IMG_DIR); err != nil {
+			if os.IsNotExist(dirDNE) {
+				err := os.Mkdir(IMG_DIR, 0700)
+				if err != nil {
+					return images, err
+				}
+			}
+		}
 		if os.IsNotExist(err) {
 			f, err = os.Create(fn)
 			if err != nil {
@@ -676,12 +749,12 @@ func deleteChar(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	err = os.Remove(SAVE_DIR + cn1)
+	err = os.Remove(CHAR_DIR + cn1)
 	if err != nil {
 		panic(err)
 	}
 
-	err = os.Remove(SAVE_DIR + cn2)
+	err = os.Remove(CHAR_DIR + cn2)
 	if err != nil {
 		panic(err)
 	}

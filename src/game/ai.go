@@ -1,9 +1,11 @@
 package game
 
 import (
+	"encoding/gob"
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
 	"sync"
 )
 
@@ -24,7 +26,7 @@ const (
 	eaMask       = 0x0003
 )
 
-var exploreRate float32 = 1.0
+var exploreRate float32 = .05
 var turns int
 var exploreMutex sync.Mutex
 
@@ -48,23 +50,66 @@ func normalize(n, min, max float32) float32 {
 // to be zeros
 func initQT() {
 	qtMutex.Lock()
-	QT = make(map[uint16][]float32)
-	for h1 := 0; h1 <= 2; h1++ {
-		for a1 := 0; a1 <= 2; a1++ {
-			for c1 := 0; c1 <= 2; c1++ {
-				for h2 := 0; h2 <= 2; h2++ {
-					for a2 := 0; a2 <= 2; a2++ {
-						for c2 := 0; c2 <= 2; c2++ {
-							state := uint16((h1 << 10) + (a1 << 8) + (c1 << 6) +
-								(h2 << 4) + (a2 << 2) + c2)
-							QT[state] = []float32{0, 0, 0, 0, 0, 0}
+	defer qtMutex.Unlock()
+
+	// check if qtable already exists
+	_, err := os.Stat("qtable")
+	if err == nil {
+		// file exists
+		loadQT()
+	} else {
+		QT = make(map[uint16][]float32)
+		for h1 := 0; h1 <= 2; h1++ {
+			for a1 := 0; a1 <= 2; a1++ {
+				for c1 := 0; c1 <= 2; c1++ {
+					for h2 := 0; h2 <= 2; h2++ {
+						for a2 := 0; a2 <= 2; a2++ {
+							for c2 := 0; c2 <= 2; c2++ {
+								state := uint16((h1 << 10) + (a1 << 8) + (c1 << 6) +
+									(h2 << 4) + (a2 << 2) + c2)
+								QT[state] = []float32{0, 0, 0, 0, 0, 0}
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-	qtMutex.Unlock()
+}
+
+// loadQT loads qTable from file. Only called from initQT since
+// there is no mutex enforcement within
+func loadQT() {
+	// only call from initQT
+	f, err := os.Open("qtable")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	dec := gob.NewDecoder(f)
+	err = dec.Decode(&QT)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// saveQT saves qtable to disk
+func saveQT() {
+	qtMutex.RLock()
+	defer qtMutex.RUnlock()
+
+	f, err := os.Create("qtable")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	enc := gob.NewEncoder(f)
+	err = enc.Encode(QT)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func getState(p, e *Class) uint16 {
@@ -338,6 +383,8 @@ func getTurnReinforcement(p, e *Class) Move {
 		initQT()
 		madeQT = true
 		fmt.Println("QT initialized")
+	} else {
+		saveQT()
 	}
 	madeLock.Unlock()
 

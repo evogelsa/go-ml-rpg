@@ -2,6 +2,7 @@ package web
 
 import (
 	"bufio"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -9,7 +10,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.iu.edu/evogelsa/go-ml-rpg/game"
@@ -21,6 +21,7 @@ const (
 	FILE_DIR = "./web/assets/"
 	IMG_DIR  = "./web/assets/imgs/"
 	SAVE_DIR = "./saves/"
+	LOG_DIR  = "./logs/"
 	PORT     = ":8080"
 )
 
@@ -37,13 +38,37 @@ func fileToString(fn string) (string, error) {
 	return text, nil
 }
 
+func loadLog(fn string) (string, error) {
+	fn = LOG_DIR + fn
+
+	body, err := ioutil.ReadFile(fn)
+	if err != nil {
+		return "", err
+	}
+
+	text := string(body)
+	return text, nil
+}
+
 // logFile adds logStr to file specified by fn inside FILE_DIR
 func logFile(fn, logStr string) error {
-	fn = FILE_DIR + fn
+	_, err := ioutil.ReadDir(LOG_DIR)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err := os.Mkdir(LOG_DIR, 0700)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			panic(err)
+		}
+	}
+
+	fn = LOG_DIR + fn
 
 	var text string
 
-	_, err := os.Stat(fn)
+	_, err = os.Stat(fn)
 	if err == nil {
 		body, _ := ioutil.ReadFile(fn)
 		text = string(body)
@@ -133,48 +158,9 @@ func readCharFromFile(fn string) (game.Class, error) {
 	}
 	defer f.Close()
 
-	scanner := bufio.NewScanner(f)
-
-	scanner.Scan()
-	char.PlayerName = scanner.Text()
-
-	scanner.Scan()
-	char.ClassName = scanner.Text()
-
-	scanner.Scan()
-	char.Health, err = strconv.Atoi(scanner.Text())
+	dec := gob.NewDecoder(f)
+	err = dec.Decode(&char)
 	if err != nil {
-		return char, err
-	}
-
-	scanner.Scan()
-	char.Armor, err = strconv.Atoi(scanner.Text())
-	if err != nil {
-		return char, err
-	}
-
-	scanner.Scan()
-	strength, err := strconv.ParseFloat(scanner.Text(), 32)
-	char.Strength = float32(strength)
-	if err != nil {
-		return char, err
-	}
-
-	scanner.Scan()
-	dexterity, err := strconv.ParseFloat(scanner.Text(), 32)
-	char.Dexterity = float32(dexterity)
-	if err != nil {
-		return char, err
-	}
-
-	scanner.Scan()
-	intellect, err := strconv.ParseFloat(scanner.Text(), 32)
-	char.Intellect = float32(intellect)
-	if err != nil {
-		return char, err
-	}
-
-	if err := scanner.Err(); err != nil {
 		return char, err
 	}
 
@@ -192,16 +178,11 @@ func writeCharToFile(c game.Class) error {
 	}
 	defer f.Close()
 
-	fmt.Fprint(
-		f,
-		c.PlayerName+"\n",
-		c.ClassName+"\n",
-		fmt.Sprintf("%d", c.Health)+"\n",
-		fmt.Sprintf("%d", c.Armor)+"\n",
-		fmt.Sprintf("%f", c.Strength)+"\n",
-		fmt.Sprintf("%f", c.Dexterity)+"\n",
-		fmt.Sprintf("%f", c.Intellect)+"\n",
-	)
+	enc := gob.NewEncoder(f)
+	err = enc.Encode(c)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -581,7 +562,7 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 	// check for game over for when select dead char
 	if c1.Health <= 0 || c2.Health <= 0 {
 		redirect := "/end/" + cn1 + "/" + cn2
-		http.Redirect(w, r, redirect, http.StatusFound)
+		http.Redirect(w, r, redirect, http.StatusMovedPermanently)
 	}
 
 	c1HTML, err := charToHTML(c1)
@@ -608,7 +589,7 @@ func gameScreen(w http.ResponseWriter, r *http.Request) {
 	// get log file name
 	logName := fmt.Sprintf("%s%s%s%s.log",
 		c1.PlayerName, c1.ClassName, c2.PlayerName, c2.ClassName)
-	gameLog, err := fileToString(logName)
+	gameLog, err := loadLog(logName)
 	if err != nil {
 		gameLog = ""
 	}
@@ -664,7 +645,7 @@ func gameEnd(w http.ResponseWriter, r *http.Request) {
 	// get log file name
 	logName := fmt.Sprintf("%s%s%s%s.log",
 		c1.PlayerName, c1.ClassName, c2.PlayerName, c2.ClassName)
-	gameLog, err := fileToString(logName)
+	gameLog, err := loadLog(logName)
 	if err != nil {
 		gameLog = ""
 	}
@@ -708,7 +689,7 @@ func deleteChar(w http.ResponseWriter, r *http.Request) {
 	logName := fmt.Sprintf("%s%s%s%s.log",
 		c1.PlayerName, c1.ClassName, c2.PlayerName, c2.ClassName)
 
-	os.Remove(FILE_DIR + logName)
+	os.Remove(LOG_DIR + logName)
 
 	imagesName := fmt.Sprintf("%s%s%s%s.images",
 		c1.PlayerName, c1.ClassName, c2.PlayerName, c2.ClassName)

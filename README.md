@@ -54,9 +54,7 @@ attribute to determine success and outcome.
 When generating a new character, an enemy character is randomly generated and
 assigned to that player character.
 
-### Machine Learning
-
-This portion is all TODO. What follows is dev notes:
+### Machine Learning AI
 
 #### MinMax Strategy
 
@@ -72,28 +70,23 @@ player, healing its own health, and repairing its armor.
 
 #### Reinforcement Learning
 
+The reinforcement learning strategy consists of using a QTable to determine
+the best option.
+
+States are determined using health, armor, and class where each stat is turned
+into a discreet value between 0 and 2. This gives 729 total states. Rewards are
+given if the state changes in the benefit of the AI, and penalties are given
+if the state changes to the benefit of the player.
+
 Rewards:
-- Small penalty for losing health or armor
-- Large penalty for health -> 0
-- Small reward for health or armor increased
-- Small reward for enemy health or armor decreased
-- Large reward for enemy health -> 0
+- Player loses health
+- Player loses armor
+- AI gains health
+- AI gains armor
 
-States:
-- Health self&&enemy
-- Stamina self&&enemy
-- Armor self&&enemy
-- Strength self&&enemy
-- Dexterity self&&enemy
-- Intellect self&&enemy
-
-Actions:
-- Heavy attack
-- Quick attack
-- Standard attack
-- Block
-- Parry
-- Dodge
+Penalties:
+- AI loses health
+- AI loses armor
 
 ### Awknowledgements
 

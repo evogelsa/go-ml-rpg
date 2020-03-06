@@ -3,7 +3,7 @@
 
 # save files
 src/saves/*
-src/web/assets/*.log
+src/logs/*.log
 src/web/assets/imgs/*.images
 
 # binaries

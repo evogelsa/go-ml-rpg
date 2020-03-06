@@ -70,7 +70,7 @@ where the computer enemy will prefer moves which will have a good chance of
 having a positive outcome for itself. Positive outcomes involve damaging the
 player, healing its own health, and repairing its armor.
 
-#### Deep Reinforcement Learning
+#### Reinforcement Learning
 
 Rewards:
 - Small penalty for losing health or armor
@@ -95,3 +95,8 @@ Actions:
 - Parry
 - Dodge
 
+### Awknowledgements
+
+Lili Lommel for character art
+
+Tyler Balson for guidance with AI

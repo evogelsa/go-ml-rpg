@@ -14,7 +14,7 @@ func main() {
 	// define ai flag with default minmax
 	aiAlg := flag.String("ai", "minmax",
 		"Specifies algorithm AI will use. Options:"+
-			"\n\trand\n\tminmax\n\tneural\n")
+			"\n\trand\n\tminmax\n\treinforcement\n")
 
 	// parse flags
 	flag.Parse()
@@ -27,9 +27,9 @@ func main() {
 	case "rand":
 		fmt.Println("Using AI Rand")
 		game.AI_ALG = game.AI_RAND
-	case "neural":
-		fmt.Println("Using AI Neural")
-		game.AI_ALG = game.AI_NEURAL
+	case "reinforcement":
+		fmt.Println("Using AI Reinforcement")
+		game.AI_ALG = game.AI_REINFORCEMENT
 	default:
 		fmt.Println("AI Unrecognized, run with flag -h for help")
 		fmt.Println("Defaulting to AI MinMax")

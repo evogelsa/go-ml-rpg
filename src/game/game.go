@@ -243,6 +243,10 @@ func SelectMove(w io.Writer, p Class) Move {
 // Turn takes in two players and two moves and and handles the events
 // which occur from player p1 executing move m1 and p2 executing m2
 func Turn(p1, p2 *Class, m1, m2 Move) (string, bool) {
+	var state uint16
+	if AI_ALG == AI_REINFORCEMENT {
+		state = getState(p1, p2)
+	}
 	var res string
 	def1, a1 := parseMove(p1, p2, m1)
 	def2, a2 := parseMove(p2, p1, m2)
@@ -392,5 +396,11 @@ func Turn(p1, p2 *Class, m1, m2 Move) (string, bool) {
 	}
 
 	res += "------------------------\n"
+
+	if AI_ALG == AI_REINFORCEMENT {
+		nextState := getState(p1, p2)
+		updateQT(state, nextState, m2)
+	}
+
 	return res, end
 }

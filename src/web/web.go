@@ -24,7 +24,6 @@ const (
 	IMG_DIR  = SAVE_DIR + "imgs/"
 	CHAR_DIR = SAVE_DIR + "characters/"
 	LOG_DIR  = SAVE_DIR + "logs/"
-	PORT     = ":8080"
 )
 
 var enemyMap map[string]string
@@ -58,23 +57,11 @@ func loadLog(fn string) (string, error) {
 
 // logFile adds logStr to file specified by fn inside FILE_DIR
 func logFile(fn, logStr string) error {
-	_, err := ioutil.ReadDir(LOG_DIR)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err := os.Mkdir(LOG_DIR, 0700)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			panic(err)
-		}
-	}
-
 	fn = LOG_DIR + fn
 
 	var text string
 
-	_, err = os.Stat(fn)
+	_, err := os.Stat(fn)
 	if err == nil {
 		body, _ := ioutil.ReadFile(fn)
 		text = string(body)
@@ -443,14 +430,7 @@ func characterSelectScreen(w http.ResponseWriter, r *http.Request) {
 
 	charFiles, err := ioutil.ReadDir(CHAR_DIR)
 	if err != nil {
-		if os.IsNotExist(err) {
-			err := os.Mkdir(CHAR_DIR, 0700)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			panic(err)
-		}
+		panic(err)
 	}
 
 	var chars [][]string
@@ -572,14 +552,6 @@ func getImageStrings(c1, c2 game.Class) ([]string, error) {
 	fn := IMG_DIR + filePrefix + ".images"
 	f, err := os.Open(fn)
 	if err != nil {
-		if _, dirDNE := ioutil.ReadDir(IMG_DIR); err != nil {
-			if os.IsNotExist(dirDNE) {
-				err := os.Mkdir(IMG_DIR, 0700)
-				if err != nil {
-					return images, err
-				}
-			}
-		}
 		if os.IsNotExist(err) {
 			f, err = os.Create(fn)
 			if err != nil {
@@ -797,8 +769,8 @@ func newRouter() *mux.Router {
 }
 
 // Server starts server using newRouter
-func Server() {
+func Server(port string) {
 	r := newRouter()
 
-	log.Fatal(http.ListenAndServe(PORT, r))
+	log.Fatal(http.ListenAndServe(port, r))
 }

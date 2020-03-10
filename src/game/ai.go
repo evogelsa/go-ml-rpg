@@ -18,15 +18,17 @@ const (
 )
 
 const (
-	learningRate = 0.5
-	discount     = 0.8
-	phMask       = 0x0300
-	paMask       = 0x00C0
-	ehMask       = 0x000C
-	eaMask       = 0x0003
+	phMask = 0x0300
+	paMask = 0x00C0
+	ehMask = 0x000C
+	eaMask = 0x0003
 )
 
-var exploreRate float32 = .05
+var Train bool
+var LearningRate float32 = 0.05
+var Discount float32 = 0.3
+
+var ExploreRate float32 = .05
 var turns int
 var exploreMutex sync.Mutex
 
@@ -169,59 +171,61 @@ func getState(p, e *Class) uint16 {
 }
 
 func updateQT(state, nextState uint16, action Move) {
-	// lock QT for reading
-	qtMutex.RLock()
-	// get current q value
-	qv := QT[state][action]
-	// get max q future
-	qf := QT[nextState]
-	// unlock QT
-	qtMutex.RUnlock()
+	if Train {
+		// lock QT for reading
+		qtMutex.RLock()
+		// get current q value
+		qv := QT[state][action]
+		// get max q future
+		qf := QT[nextState]
+		// unlock QT
+		qtMutex.RUnlock()
 
-	var max float32 = -math.MaxFloat32
-	for _, v := range qf {
-		if max < v {
-			max = v
+		var max float32 = -math.MaxFloat32
+		for _, v := range qf {
+			if max < v {
+				max = v
+			}
 		}
-	}
-	// get reward (check if state values change)
-	var reward float32
-	// extract p health, if decrease + reward
-	ph := (state & phMask) >> 8
-	phNext := (nextState & phMask) >> 8
-	if phNext < ph {
-		reward += 1.5
-	}
-	// extract p armor, if decrease + reward
-	pa := (state & paMask) >> 6
-	paNext := (nextState & paMask) >> 6
-	if paNext < pa {
-		reward += 1.5
-	}
-	// extract e health, if increase + reward, if dec small penalty
-	eh := (state & ehMask) >> 2
-	ehNext := (nextState & ehMask) >> 2
-	if ehNext > eh {
-		reward += 1
-	} else if ehNext < eh {
-		reward -= .5
-	}
-	// extract e armor, if increase + reward, if dec small penalty
-	ea := (state & eaMask)
-	eaNext := (nextState & eaMask)
-	if eaNext > ea {
-		reward += 1
-	} else if eaNext < ea {
-		reward -= .5
-	}
+		// get reward (check if state values change)
+		var reward float32
+		// extract p health, if decrease + reward
+		ph := (state & phMask) >> 8
+		phNext := (nextState & phMask) >> 8
+		if phNext < ph {
+			reward += 1.5
+		}
+		// extract p armor, if decrease + reward
+		pa := (state & paMask) >> 6
+		paNext := (nextState & paMask) >> 6
+		if paNext < pa {
+			reward += 1.5
+		}
+		// extract e health, if increase + reward, if dec small penalty
+		eh := (state & ehMask) >> 2
+		ehNext := (nextState & ehMask) >> 2
+		if ehNext > eh {
+			reward += 1
+		} else if ehNext < eh {
+			reward -= .5
+		}
+		// extract e armor, if increase + reward, if dec small penalty
+		ea := (state & eaMask)
+		eaNext := (nextState & eaMask)
+		if eaNext > ea {
+			reward += 1
+		} else if eaNext < ea {
+			reward -= .5
+		}
 
-	// lock qt for writing
-	qtMutex.Lock()
-	QT[state][action] = qv + learningRate*(reward+discount*max-qv)
-	fmt.Printf("%f = ", QT[state][action])
-	fmt.Printf("%f + %f*(%f+%f*%f-%f)\n",
-		qv, learningRate, reward, discount, max, qv)
-	qtMutex.Unlock()
+		// lock qt for writing
+		qtMutex.Lock()
+		QT[state][action] = qv + LearningRate*(reward+Discount*max-qv)
+		fmt.Printf("%f = ", QT[state][action])
+		fmt.Printf("%f + %f*(%f+%f*%f-%f)\n",
+			qv, LearningRate, reward, Discount, max, qv)
+		qtMutex.Unlock()
+	}
 }
 
 // minMaxDamage returns array of avg outcome for each move wrt
@@ -393,15 +397,13 @@ func getTurnReinforcement(p, e *Class) Move {
 	// select next action, check explore or exploit
 	exploreMutex.Lock()
 	var action Move
-	if rand.Float32() < exploreRate {
-		fmt.Println("Exploring")
+	if rand.Float32() < ExploreRate {
 		turns++
 		action = getTurnRand()
-		if exploreRate > .25 {
-			exploreRate -= (float32(turns) * .001)
+		if ExploreRate > .25 {
+			ExploreRate -= (float32(turns) * .001)
 		}
 	} else {
-		fmt.Println("Exploiting")
 		var max float32 = -math.MaxFloat32
 		for i, v := range QT[state] {
 			if max < v {

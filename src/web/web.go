@@ -234,10 +234,14 @@ func parseMoveForm(w http.ResponseWriter, r *http.Request) {
 
 	c1, err := readCharFromFile(char1Name)
 	if err != nil {
+		fmt.Printf("Could not read char %s from file\n", char1Name)
+		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
 	}
 	c2, err := readCharFromFile(char2Name)
 	if err != nil {
+		fmt.Printf("Could not read char %s from file\n", char2Name)
+		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
 	}
 
@@ -264,6 +268,8 @@ func parseMoveForm(w http.ResponseWriter, r *http.Request) {
 	// write turns to file
 	err = setImages(c1, c2, move, enemyMove)
 	if err != nil {
+		fmt.Printf("Could not write image file for %v %v\n", c1, c2)
+		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
 	}
 
@@ -275,15 +281,21 @@ func parseMoveForm(w http.ResponseWriter, r *http.Request) {
 	// add result to log file
 	err = logFile(logName, res)
 	if err != nil {
+		fmt.Printf("Could not write to log file %s", logName)
+		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
 	}
 
 	err = writeCharToFile(c1)
 	if err != nil {
+		fmt.Printf("Could not write char %v to file", c1)
+		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
 	}
 	err = writeCharToFile(c2)
 	if err != nil {
+		fmt.Printf("Could not write char %v to file", c2)
+		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
 	}
 
@@ -301,9 +313,9 @@ func parseMoveForm(w http.ResponseWriter, r *http.Request) {
 func parseNewCharForm(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		fmt.Println(fmt.Errorf("Error: %v", err))
+		fmt.Printf("Could not parse form\n")
 		w.WriteHeader(http.StatusInternalServerError)
-		return
+		panic(err)
 	}
 
 	class := r.Form.Get("class")
@@ -312,10 +324,14 @@ func parseNewCharForm(w http.ResponseWriter, r *http.Request) {
 	if name == "" {
 		style, err := fileToString("styleHead.html")
 		if err != nil {
+			fmt.Printf("Could not convert styleHead.html\n")
+			w.WriteHeader(http.StatusInternalServerError)
 			panic(err)
 		}
 		body, err := fileToString("newCharacterScreen.html")
 		if err != nil {
+			fmt.Printf("Could not convert newCharacterScreen.html\n")
+			w.WriteHeader(http.StatusInternalServerError)
 			panic(err)
 		}
 		fmt.Fprint(w, style+body)
@@ -323,6 +339,8 @@ func parseNewCharForm(w http.ResponseWriter, r *http.Request) {
 	} else {
 		err = generateChar(class, name)
 		if err != nil {
+			fmt.Printf("Could not parse character type\n")
+			w.WriteHeader(http.StatusInternalServerError)
 			panic(err)
 		}
 
@@ -334,11 +352,15 @@ func parseNewCharForm(w http.ResponseWriter, r *http.Request) {
 func newCharacterScreen(w http.ResponseWriter, r *http.Request) {
 	s, err := fileToString("newCharacterScreen.html")
 	if err != nil {
+		fmt.Printf("Could not convert newCharacterScreen.html\n")
+		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
 	}
 
 	style, err := fileToString("styleHead.html")
 	if err != nil {
+		fmt.Printf("Could not convert styleHead.html\n")
+		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
 	}
 
@@ -365,6 +387,7 @@ func loadEnemyMap() {
 	// only call from initQT
 	f, err := os.Open(SAVE_DIR + "enemy_map")
 	if err != nil {
+		fmt.Printf("Could not open enemy_map\n")
 		panic(err)
 	}
 	defer f.Close()
@@ -372,6 +395,7 @@ func loadEnemyMap() {
 	dec := gob.NewDecoder(f)
 	err = dec.Decode(&enemyMap)
 	if err != nil {
+		fmt.Printf("Could not decode enemy_map\n")
 		panic(err)
 	}
 }
@@ -382,6 +406,7 @@ func saveEnemyMap() {
 
 	f, err := os.Create(SAVE_DIR + "enemy_map")
 	if err != nil {
+		fmt.Printf("Could not write enemy_map\n")
 		panic(err)
 	}
 	defer f.Close()
@@ -389,6 +414,7 @@ func saveEnemyMap() {
 	enc := gob.NewEncoder(f)
 	err = enc.Encode(enemyMap)
 	if err != nil {
+		fmt.Printf("Could not encode enemy_map\n")
 		panic(err)
 	}
 }

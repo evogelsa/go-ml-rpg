@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -18,9 +19,22 @@ func main() {
 	aiAlg := flag.String("ai", "reinforcement",
 		"Specifies algorithm AI will use. Options:"+
 			"\n\trand\n\tminmax\n\treinforcement\n")
+	lr := flag.Float64("lr", .05, "Learning rate that reinforcement model"+
+		" will use\n")
+	df := flag.Float64("df", .3, "Discount factor that reinforcement model"+
+		" will use\n")
+	er := flag.Float64("er", .05, "Explore rate that reinforcement model"+
+		" will use\n")
+	train := flag.Bool("train", false, "Reinforcement model will update after"+
+		" each move if true\n")
 
 	// parse flags
 	flag.Parse()
+
+	game.LearningRate = float32(*lr)
+	game.Discount = float32(*df)
+	game.ExploreRate = float32(*er)
+	game.Train = *train
 
 	// set algorithm accordingly to commandline flag
 	switch *aiAlg {
@@ -43,36 +57,40 @@ func main() {
 	_, err := os.Stat(web.SAVE_DIR)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err := os.Mkdir(web.SAVE_DIR, 0700)
+			err := os.Mkdir(web.SAVE_DIR, 0777)
 			if err != nil {
-				panic(err)
+				fmt.Println(errors.New("Cannot create SAVE_DIR"))
+				os.Exit(1)
 			}
 		}
 	}
 	_, err = os.Stat(web.LOG_DIR)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err := os.Mkdir(web.LOG_DIR, 0700)
+			err := os.Mkdir(web.LOG_DIR, 0777)
 			if err != nil {
-				panic(err)
+				fmt.Println(errors.New("Cannot create LOG_DIR"))
+				os.Exit(1)
 			}
 		}
 	}
 	_, err = os.Stat(web.CHAR_DIR)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err := os.Mkdir(web.CHAR_DIR, 0700)
+			err := os.Mkdir(web.CHAR_DIR, 0777)
 			if err != nil {
-				panic(err)
+				fmt.Println(errors.New("Cannot create CHAR_DIR"))
+				os.Exit(1)
 			}
 		}
 	}
 	_, err = os.Stat(web.IMG_DIR)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err := os.Mkdir(web.IMG_DIR, 0700)
+			err := os.Mkdir(web.IMG_DIR, 0777)
 			if err != nil {
-				panic(err)
+				fmt.Println(errors.New("Cannot create IMG_DIR"))
+				os.Exit(1)
 			}
 		}
 	}

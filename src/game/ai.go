@@ -25,10 +25,10 @@ const (
 )
 
 var Train bool
-var LearningRate float32 = 0.05
-var Discount float32 = 0.3
+var LearningRate float32
+var Discount float32
 
-var ExploreRate float32 = .05
+var ExploreRate float32
 var turns int
 var exploreMutex sync.Mutex
 

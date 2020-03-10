@@ -6,12 +6,12 @@
 
 This rpg is loosely based off a generic turn based fighting game. The game is
 made up of three classes, Knight, Archer, and Wizard. Each class has 6 different
-stats: health, stamina (unused), armor, strength, dexterity, and intellect.
-Characters die when health drops to or below 0. Armor will prevent character
-from taking any damage, but is reduced by the amount of damage done (i.e. a
-character with 5 armor that gets attacked for 7 damage will take 0 damage but
-will end the turn with 0 armor). Strength, dexterity, and intellect are used for
-calculating move success and outcome.
+stats: health, armor, strength, dexterity, and intellect.  Characters die when
+health drops to or below 0. Armor will prevent character from taking any damage,
+but is reduced by the amount of damage done (i.e. a character with 5 armor that
+gets attacked for 7 damage will take 0 damage but will end the turn with 0
+armor). Strength, dexterity, and intellect are used for calculating move
+success and outcome.
 
 #### Character Generation
 
@@ -43,7 +43,8 @@ damage attribute is high.
 | Standard | Dexterity         | Intellect        |
 
 Defensive moves are slightly different. The three moves each rely on a single
-attribute to determine success and outcome.
+attribute to determine success and outcome. Defensive moves can also only be
+successful if the opponent uses an offensive move.
 
 | Defense | Attribute | Success outcome       | Fail outcome       |
 |---------|-----------|-----------------------|--------------------|
@@ -55,6 +56,13 @@ When generating a new character, an enemy character is randomly generated and
 assigned to that player character.
 
 ### Machine Learning AI
+
+When running the server there are a number of command line flags.  Running with
+`-h` or `--help` will provide a useful text containing the flags available.
+
+#### Random Strategy
+
+The AI picks a random move to use.
 
 #### MinMax Strategy
 
@@ -71,7 +79,9 @@ player, healing its own health, and repairing its armor.
 #### Reinforcement Learning
 
 The reinforcement learning strategy consists of using a QTable to determine
-the best option.
+the best option. By default the learning rate is set to .05, discount factor
+set to .3, and explore rate set to .05. These can be changed through the run
+flags.
 
 States are determined using health, armor, and class where each stat is turned
 into a discreet value between 0 and 2. This gives 729 total states. Rewards are

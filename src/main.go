@@ -18,15 +18,15 @@ func main() {
 	// define ai flag with default minmax
 	aiAlg := flag.String("ai", "reinforcement",
 		"Specifies algorithm AI will use. Options:"+
-			"\n\trand\n\tminmax\n\treinforcement\n")
+			"\n\trand\n\tminmax\n\treinforcement\n\t")
 	lr := flag.Float64("lr", .05, "Learning rate that reinforcement model"+
-		" will use\n")
+		" will use\n\t")
 	df := flag.Float64("df", .3, "Discount factor that reinforcement model"+
-		" will use\n")
+		" will use\n\t")
 	er := flag.Float64("er", .05, "Explore rate that reinforcement model"+
-		" will use\n")
+		" will use\n\t")
 	train := flag.Bool("train", false, "Reinforcement model will update after"+
-		" each move if true\n")
+		" each move if true\n\t")
 
 	// parse flags
 	flag.Parse()

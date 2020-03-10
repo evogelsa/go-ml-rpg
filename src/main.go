@@ -11,7 +11,7 @@ import (
 	"github.iu.edu/evogelsa/go-ml-rpg/web"
 )
 
-const PORT = ":42069"
+const PORT = ":8080"
 
 func main() {
 	// define ai flag with default minmax

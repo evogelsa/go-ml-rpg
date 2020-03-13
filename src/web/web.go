@@ -431,13 +431,20 @@ func getOpponent(character string) string {
 		}
 		names := strings.SplitN(nameStr, ",", -1)
 
-		opClass := []string{"Knight", "Archer", "Wizard"}[rand.Intn(3)]
-		opName := fmt.Sprintf("%s_enemy", names[rand.Intn(len(names))])
-		err = generateChar(opClass, opName)
-		if err != nil {
-			panic(err)
+		for {
+			opClass := []string{"Knight", "Archer", "Wizard"}[rand.Intn(3)]
+			opName := fmt.Sprintf("%s_enemy", names[rand.Intn(len(names))])
+			opponent = opName + "." + opClass
+
+			_, err = os.Stat(SAVE_DIR + opponent)
+			if os.IsNotExist(err) {
+				err = generateChar(opClass, opName)
+				if err != nil {
+					panic(err)
+				}
+				break
+			}
 		}
-		opponent = opName + "." + opClass
 
 		enemyMapLock.Lock()
 		enemyMap[character] = opponent

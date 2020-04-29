@@ -129,10 +129,10 @@ The QTable is a table of values which enumerate each possible state and the
 potential rewards associated with each action that could be taken from that
 state. An example QTable may look similar to the following:
 
-|             | **Attack** | **Defend** |
-| **State 1** | 0.52       | 1.50       |
-| **State 2** | -5         | 294        |
-| **State 3** | 1          | -0.25      |
+| Example QTable | **Attack** | **Defend** |
+| **State 1**    | 0.52       | 1.50       |
+| **State 2**    | -5         | 294        |
+| **State 3**    | 1          | -0.25      |
 
 This QTable is much simpler than the one used in the game, but the concept is
 identical. If the computer analyzes the current game and decides the state is

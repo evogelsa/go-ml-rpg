@@ -201,6 +201,4 @@ needed taste of flavor to the UX.
 Thank you to all the play testers who took some time to play the game and help
 train the AI and give their feedback.
 
-Please see [report.bib][1]
-[1](https://github.iu.edu/evogelsa/go-ml-rpg/blob/master/report.bib)
-for citations used.
+Please see [report.bib](/blob/master/report.bib) for citations used.

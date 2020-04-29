@@ -30,29 +30,31 @@ and still puts up a fight against those with more experience.
 
 ## Introduction
 
-What does machine learning bring to the table that common computer opponents do
-not have? Realistically the answer may be that it brings very little, but
+what does machine learning bring to the table that hard coded computer opponents
+do not have? realistically the answer may be that it brings very little, but
 in this application it provides a lot of flexibility for a very specific use 
-case. This RPG was intentionally designed to work with a computer opponent that
-uses reinforcement learning to its advantage. The computer is always learning 
-from the games it plays. This allows the computer to continuously be adapting
-and adjusting its play to changes in player strategy or game meta. In the ideal
-scenario players play against a computer which trains only to their play style,
-and thus it is always providing a challenge to the player until they find a new
-strategy to adapt.
+case. this role playing game as intentionally designed to work with a computer
+opponent that uses reinforcement learning to its advantage. the computer is 
+always learning from the games it plays. this allows the computer to 
+continuously adapt and adjust its play to changes in player strategy or game 
+mechanics. in the ideal scenario players fight against a computer which trains
+only against them. players would then be fighting opponents which adapt to their
+strategies and keep the game challenging.
 
 ## Game Design 
 
 #### Description
 
-This rpg is loosely based off a generic turn based fighting game. The game is
-made up of three classes, Knight, Archer, and Wizard. Each class has 5 different
-stats: health, armor, strength, dexterity, and intellect.  Characters die when
-health drops to or below 0. Armor will prevent character from taking any damage,
-but is reduced by the amount of damage done (i.e. a character with 5 armor that
-gets attacked for 7 damage will take 0 damage but will end the turn with 0
-armor). Strength, dexterity, and intellect are used for calculating move
-success and outcome.
+This game is inspired by turn based fighting, but both the computer and the
+player take their turn simultaneously. Another game with similar mechanics is
+the classic card game "War." In this game however, the characters have three
+classes, Knight, Archer, and Wizard. Each class has 5 different stats: health, 
+armor, strength, dexterity, and intellect.  Characters die when health drops to
+or below 0. Armor will prevent a character from taking any damage, but it is 
+reduced by the amount of damage done (i.e. a character with 5 armor that gets
+attacked for 7 damage will take 0 damage but will end the turn with 0 armor). 
+Strength, dexterity, and intellect are used for calculating move success and
+outcome.
 
 #### Character Generation
 
@@ -71,7 +73,7 @@ values below:
 
 Each class has the same types of moves. Within the game logic there are three
 attacks and three defenses: heavy attack, quick attack, standard attack, block,
-parry, and evade. Each attack has a attribute it checks against for success and
+parry, and evade. Each attack has an attribute it checks against for success and
 a different attribute it checks for damage. This means that a given attack will
 have the highest hit rate against enemies whose relevant success attribute is
 a low value. Similarly, a given attack will do the most damage when the relevant
@@ -147,7 +149,7 @@ and more actions means larger file sizes which results in performance loss when
 saving and reading data.
 
 Within the game states are determined using health, armor, and class where each
-stat is turned into a discreet value between 0 and 2 (inclusive). This gives 729
+stat is turned into a discrete value between 0 and 2 (inclusive). This gives 729
 total states. These descriptors were selected in order to give a general idea of
 what the game looks like without increasing complexity by analyzing every
 available stat. Possible improvements to the AI difficulty could be found by
@@ -169,10 +171,10 @@ Penalties:
 - AI loses armor
 
 This method of machine learning provides a setup which allows for the computer
-to not necessarily need a fully trained model in order to be effective. In fact
+to not necessarily need a fully trained model in order to be effective. In fact,
 during the first round of testing the computer was initially trained against
 another computer using randomly generated characters and making decisions with 
-the random strategy. This allowed for a relatively efficient way the for 
+the random strategy. This allowed for a relatively efficient way for the
 computer to get experience playing against all possible scenarios. Later into
 development human players were recruited to test the viability of the AI.
 
@@ -181,15 +183,15 @@ development human players were recruited to test the viability of the AI.
 The results of player testing showed that the success of the AI was largely
 dependent on player experience. Newer players often struggled against the
 computer and were unable to defeat it. However, once players were able to
-discover a strategy, such as spamming parry as an archer, the AI became much
-easier to defeat. From a game design perspective this may actually be a good
+discover a strategy, such as only using the parry move as an archer, the AI
+became much easier to defeat. From a game design perspective this may be a good
 thing since the player should be able to feel accomplishment through progress.
 
 During play testing the AI was set to have pretty gentle learning rates, and it
 never trained on only one player at a time. This limited the ability for the
 algorithm to adapt to the strategies of just one person at a time, and instead
 the computer ended up with an average of all players. For the small number of
-people playing at once this still turned out to be decently effective, but with
+people playing at once this still turned out to be effective, but with
 larger player bases it is likely that this implementation would quickly become
 ineffective. This could be circumvented by adding an authentication system
 allowing players to each have their own AI which has only trained against them.

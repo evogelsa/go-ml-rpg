@@ -130,6 +130,7 @@ potential rewards associated with each action that could be taken from that
 state. An example QTable may look similar to the following:
 
 | Example QTable | **Attack** | **Defend** |
+|----------------|------------|------------|
 | **State 1**    | 0.52       | 1.50       |
 | **State 2**    | -5         | 294        |
 | **State 3**    | 1          | -0.25      |

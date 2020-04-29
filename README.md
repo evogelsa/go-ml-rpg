@@ -141,7 +141,7 @@ This QTable is much simpler than the one used in the game, but the concept is
 identical. If the computer analyzes the current game and decides the state is
 state 1, then it will most likely select the defensive action as that provides
 the highest reward. Depending on the exploration rate, there is a chance that
-the action is randomly selected rather than selected based off reward. 
+the action is randomly selected rather than selected based on reward. 
 
 The size of the QTable grows exponentially as more states and more actions are
 added to the game, which limits the amount of complexity greatly. More states

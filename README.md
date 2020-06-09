@@ -30,15 +30,15 @@ and still puts up a fight against those with more experience.
 
 ## Introduction
 
-what does machine learning bring to the table that hard coded computer opponents
-do not have? realistically the answer may be that it brings very little, but
+What does machine learning bring to the table that hard coded computer opponents
+do not have? Realistically the answer may be that it brings very little, but
 in this application it provides a lot of flexibility for a very specific use 
-case. this role playing game as intentionally designed to work with a computer
-opponent that uses reinforcement learning to its advantage. the computer is 
-always learning from the games it plays. this allows the computer to 
+case. This role playing game as intentionally designed to work with a computer
+opponent that uses reinforcement learning to its advantage. The computer is 
+always learning from the games it plays. This allows the computer to 
 continuously adapt and adjust its play to changes in player strategy or game 
-mechanics. in the ideal scenario players fight against a computer which trains
-only against them. players would then be fighting opponents which adapt to their
+mechanics. In the ideal scenario players fight against a computer which trains
+only against them. Players would then be fighting opponents which adapt to their
 strategies and keep the game challenging.
 
 ## Game Design 

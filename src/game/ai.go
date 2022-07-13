@@ -61,21 +61,6 @@ func initQT() {
 		loadQT()
 	} else {
 		QT = make(map[uint16][]float32)
-		for h1 := 0; h1 <= 2; h1++ {
-			for a1 := 0; a1 <= 2; a1++ {
-				for c1 := 0; c1 <= 2; c1++ {
-					for h2 := 0; h2 <= 2; h2++ {
-						for a2 := 0; a2 <= 2; a2++ {
-							for c2 := 0; c2 <= 2; c2++ {
-								state := uint16((h1 << 10) + (a1 << 8) + (c1 << 6) +
-									(h2 << 4) + (a2 << 2) + c2)
-								QT[state] = []float32{0, 0, 0, 0, 0, 0}
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 }
 

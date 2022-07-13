@@ -38,10 +38,10 @@
 </table>
 <script>
 function redirect(move) {
-  var hostname = "http://" + window.location.hostname + ":8080/";
+  var hostname = "http://" + window.location.hostname;
   var char1 = window.location.pathname.split("/")[2] + "/";
   var char2 = window.location.pathname.split("/")[3] + "/";
-  var ref = hostname + "turn/" + char1 + char2 + "/" + move;
+  var ref = hostname + "/turn/" + char1 + char2 + move;
   window.location.replace(ref)
 }
 </script>

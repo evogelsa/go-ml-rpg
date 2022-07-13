@@ -1,4 +1,4 @@
-import requests
+mport requests
 import random
 import time
 
@@ -6,7 +6,7 @@ random.seed(time.time())
 
 def gen_char():
     # generate character randomly
-    URL = "http://localhost:8080/newChar"
+    URL = "http://localhost:8081/newChar"
 
     classes = ['Knight','Archer','Wizard']
     c_player = classes[random.randint(0,2)]
@@ -35,12 +35,12 @@ def play_game():
     while True:
         moves = ['Heavy', 'Quick', 'Standard', 'Block', 'Parry', 'Evade']
 
-        URL = ("http://localhost:8080/turn/Training." + c_player +
+        URL = ("http://localhost:8081/turn/Training." + c_player +
             "/Training_enemy." + c_enemy + "/" + moves[random.randint(0,5)])
 
         r = requests.get(url = URL)
 
-        END_URL = "http://localhost:8080/end/"
+        END_URL = "http://localhost:8081/end/"
 
         if END_URL in r.url:
             break

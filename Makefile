@@ -1,24 +1,21 @@
-docker-all: docker-build docker-start
-	@echo "Done"
+all: docker-clean docker-build docker-create
 
 docker-build:
-	@echo "Building the image from docker file..."
 	docker build --no-cache --pull -t go-ml-rpg .
-	@echo "Image build complete"
+
+docker-create:
+	docker create \
+		-p 8081:8081 \
+		-v ${CURDIR}/src/:/go/src/go-ml-rpg/ \
+		--name go-ml-rpg \
+		go-ml-rpg
 
 docker-start:
-	@echo "Starting service in container..."
-	docker run -p 8080:8080 -v ${CURDIR}/src/:/go/src/go-ml-rpg/ -it go-ml-rpg
+	docker start go-ml-rpg
 
 docker-stop:
-	@echo "Stopping the service..."
-	docker stop $$(docker ps -alq)
-	@echo "Service stopped"
+	docker stop go-ml-rpg
 
-docker-remove:
-	@echo "Removing image..."
-	docker rmi -f go-ml-rpg
-	@echo "Image removed"
-
-docker-clean: docker-stop docker-remove
-	@echo "Clean complete"
+docker-clean:
+	-docker rm go-ml-rpg
+	-docker rmi go-ml-rpg

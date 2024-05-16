@@ -6,6 +6,8 @@ WORKDIR /go/src/go-ml-rpg
 
 COPY src/ ./
 
-ENTRYPOINT ["/go/src/go-ml-rpg/autorun.sh"]
+RUN go mod download
 
-CMD ["bash"]
+RUN go build -o /go-ml-rpg
+
+CMD [ "/go-ml-rpg" ]

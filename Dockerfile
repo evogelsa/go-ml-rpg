@@ -4,6 +4,8 @@ MAINTAINER Ethan Vogelsang "evogelsa@iu.edu"
 
 WORKDIR /go/src/go-ml-rpg
 
+COPY src/ ./
+
 ENTRYPOINT ["/go/src/go-ml-rpg/autorun.sh"]
 
 CMD ["bash"]
